@@ -5,7 +5,7 @@
 
 ### How to use
 
-1. 下载 zip 文件，解压 exe 到项目 `public` 目录下
+1. 下载 [zip](https://github.com/MMHK/project_launcher/releases/download/1.0/projectLauncher_x64.zip) 文件，解压 exe 到项目 `public` 目录下
 2. 执行 exe 文件，根据提示进行操作
 3. 等候 exe 执行完毕后，重新刷新打开的网页，就会见到已经跑起来的网站了。
 
