@@ -68,14 +68,14 @@ func main() {
 	}
 	
 	input = strings.TrimSpace(input)
-	if len(input) <= 0 {
+	if len(input) <= 0 && len(subDomain) > 0 {
 		fmt.Printf("使用现有域名 %s.dev.mixmedia.com\n", subDomain)
 		input = subDomain
 	}
 	
 	exist := api.SubDomainExist(input)
 	if exist {
-		fmt.Errorf("三级域名 %s 已经存在，请重新选择另外一个名字", input)
+		log.Errorf("三级域名 %s 已经存在，请重新选择另外一个名字\n", input)
 		goto user_input
 	}
 	
