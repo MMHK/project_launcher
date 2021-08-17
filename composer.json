@@ -1,0 +1,77 @@
+{
+    "name": "laravel/laravel",
+    "description": "The Laravel Framework.",
+    "keywords": ["framework", "laravel"],
+    "license": "MIT",
+    "type": "project",
+    "require": {
+        "php": "^7.2.28|^8.0",
+        "aftership/aftership-php-sdk": "^5.1",
+        "fideloper/proxy": "~3.3",
+        "guzzlehttp/guzzle": "^6.3",
+        "hisorange/browser-detect": "^3.1",
+        "intervention/image": "^2.4",
+        "laravel/framework": "5.5.*",
+        "laravel/tinker": "~1.0",
+        "league/flysystem-aws-s3-v3": "^1.0",
+        "league/pipeline": "^0.3.0",
+        "maatwebsite/excel": "^3.1",
+        "predis/predis": "^1.1",
+        "tolawho/loggy": "^1.0",
+        "trexology/taxonomy": "^3.3",
+        "zircote/swagger-php": "2.0"
+    },
+    "require-dev": {
+        "barryvdh/laravel-ide-helper": "^2.6",
+        "doctrine/dbal": "^2.5",
+        "filp/whoops": "~2.0",
+        "fzaninotto/faker": "~1.4",
+        "mmhk/vendor-phar": "^1.2",
+        "mockery/mockery": "~1.0",
+        "phpunit/phpunit": "~6.0",
+        "symfony/thanks": "^1.0"
+    },
+    "autoload": {
+        "classmap": [
+            "database/seeds",
+            "database/factories"
+        ],
+        "psr-4": {
+            "App\\": "app/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        },
+        "files": [
+            "app/Helper/helper.php"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "dont-discover": [
+            ]
+        }
+    },
+    "scripts": {
+        "post-root-package-install": [
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+        ],
+        "post-create-project-cmd": [
+            "@php artisan key:generate"
+        ],
+        "post-autoload-dump": [
+            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
+            "@php artisan package:discover"
+        ],
+        "build-vendor": [
+            "@php -d phar.readonly=0 vendor/mmhk/vendor-phar/vendor-phar -c ./vendor-phar.json"
+        ]
+    },
+    "config": {
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "optimize-autoloader": true
+    }
+}
