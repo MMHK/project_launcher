@@ -118,7 +118,7 @@ func main() {
 	}()
 	
 	log.Info("准备启动容器")
-	err = StartContainer(dir)
+	err = StartContainer(dir, input)
 	if err != nil {
 		log.Error(err)
 		return

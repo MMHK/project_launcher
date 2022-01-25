@@ -153,9 +153,10 @@ func EnableVM() error {
 	})
 }
 
-func StartContainer(dir string) error {
+func StartContainer(dir string, containerName string) error {
 	cmd := exec.Command("docker-compose", "--project-directory", dir,
 		"--file", fmt.Sprintf(`%s/docker-compose.yml`, dir),
+		"--project-name", containerName,
 		"--", "up", "--detach", "--force-recreate")
 	//log.Debugf("%s\n", cmd)
 	if err := cmd.Start(); err != nil {

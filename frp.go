@@ -118,7 +118,7 @@ func (this *FrpApi) SubDomainExist(subDomain string) bool {
 	}
 
 	for _, item := range list.Proxies {
-		if item.Conf != nil && strings.EqualFold(item.Conf.SubDomain, subDomain) {
+		if strings.EqualFold(item.Name, subDomain) {
 			return true
 		}
 	}
