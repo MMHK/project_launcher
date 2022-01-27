@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -208,27 +209,29 @@ func parseService(raw string) *WinService {
 }
 
 func DetectService(name string) (error, *WinService) {
-	var service *WinService;
-	err := RunScript(func(runner powershell.Runspace) error {
-		cmd := fmt.Sprintf(`Get-Service "%s" | ConvertTo-Json -Compress`, name)
-		//log.Debug(cmd)
-		res := runner.ExecScript(cmd, true, nil)
-		defer res.Close()
-		if res.Success() {
-			for _, ele := range res.Objects {
-				service = parseService(ele.ToString())
-				if len(service.Name) > 0 && !strings.EqualFold(service.Name, "Name") {
-					return nil;
-				}
- 			}
-			
-			return errors.New("Service not found")
-		}
+	commandLine := fmt.Sprintf(`Get-Service "%s" | ConvertTo-Json -Compress`, name)
+	cmd := exec.Command("powershell",
+		"-NoProfile", "-NonInteractive", "-Command", commandLine)
+	//log.Debugf(`%s`, cmd)
+	var stdout bytes.Buffer
+	cmd.Stdout = &stdout
+	err := cmd.Start()
+	if err != nil {
+		return err, nil
+	}
+	err = cmd.Wait()
+	if err != nil {
+		return err, nil
+	}
 
-		return errors.New(res.Exception.ToString())
-	})
-	
-	return err, service
+	out := stdout.String()
+
+	service := parseService(out)
+	if len(service.Name) > 0 && strings.EqualFold(service.Name, name) {
+		return nil, service
+	}
+
+	return errors.New("Service not found"), nil
 }
 
 func LoadExistFrpcConfig(dir string) (string, error) {

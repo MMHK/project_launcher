@@ -68,8 +68,8 @@ func TestReloadPathEnv(t *testing.T) {
 }
 
 func TestStartContainer(t *testing.T) {
-	path := "F:/Projects/speedyagency/code/public"
-	err := StartContainer(path, "speedyagency")
+	path := "D:/projects/wechat-coupon/code/php/public"
+	err := StartContainer(path, "sam-wechat")
 	if err != nil {
 		t.Error(err)
 		t.Fail()

@@ -92,18 +92,10 @@ func RunScript(callback func(powershell.Runspace) error) error {
 }
 
 func ReloadPathEnv() error {
-	return RunScript(func(runner powershell.Runspace) error {
-		cmd := `$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")`
-		//log.Debug(cmd)
+	commandLine := `$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")`
+	cmd := exec.Command("powershell", "-Command", fmt.Sprintf(`{%s}`, commandLine))
 
-		res := runner.ExecScript(cmd, true, nil)
-		defer res.Close()
-		if res.Success() {
-			return nil
-		}
-
-		return errors.New(res.Exception.ToString())
-	})
+	return cmd.Run()
 }
 
 func EnableWSL() error {
@@ -157,7 +149,7 @@ func StartContainer(dir string, containerName string) error {
 		wtCmd = "wt"
 	}
 	cmd := exec.Command("cmd", "/C", "start", wtCmd, "docker-compose",
-		"--project-directory", fmt.Sprintf(`"%s"`, dir),
+		"--project-directory", filepath.FromSlash(dir),
 		"--file", fmt.Sprintf(`%s/docker-compose.yml`, dir),
 		"--project-name", containerName,
 		"--", "up", "--detach", "--force-recreate")
