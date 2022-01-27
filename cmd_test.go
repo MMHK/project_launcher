@@ -76,3 +76,31 @@ func TestStartContainer(t *testing.T) {
 		return
 	}
 }
+
+func TestStartDockerDesktop(t *testing.T) {
+	err := StartDockerDesktop()
+	if err != nil {
+		t.Error(err)
+		t.Fail()
+		return
+	}
+}
+
+func TestRunPHPConsole(t *testing.T) {
+	err := RunPHPConsole("speedyagency")
+	if err != nil {
+		t.Error(err)
+		t.Fail()
+		return
+	}
+}
+
+func TestPHPComposerInit(t *testing.T) {
+	path := "F:/Projects/speedyagency/code/public"
+	err := PHPComposerInit(path)
+	if err != nil {
+		t.Error(err)
+		t.Fail()
+		return
+	}
+}

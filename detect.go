@@ -157,7 +157,8 @@ func IsDockerInstalled() (error) {
 	err, _ := DetectService(`com.docker.service`)
 	if err != nil {
 		log.Error(err)
-		return errors.New("install docker desktop first plz, https://docs.docker.com/docker-for-windows/install/")
+		return NewLauncherError(ERROR_DOCKER_DESKTOP_NOT_INSTALLED,
+			"请先安装 Docker Desktop, https://doc.weixin.qq.com/doc/w2_AGUAAwb2AKY9YO5hUlhSjODSUvwi6?scode=AEwAtAeZAAkacJBfyk")
 	}
 	
 	cmd := exec.Command("docker", "info")
@@ -167,10 +168,21 @@ func IsDockerInstalled() (error) {
 	if err != nil {
 		log.Error(err)
 		
-		return errors.New("start docker desktop first plz")
+		return NewLauncherError(ERROR_DOCKER_DESKTOP_NOT_RUNNING,
+			"DockerDesktop 还未运行")
 	}
 
 	return nil
+}
+
+func IsWindowTerminalInstalled() (error) {
+	cmd := exec.Command("wt", "-v")
+	err := cmd.Run()
+	if err != nil {
+		return NewLauncherError(ERROR_WINDOW_TERMINAL_NOT_INSTALLED,
+			"Window Terminal 还未安装，https://www.microsoft.com/zh-cn/p/windows-terminal/9n0dx20hk701?activetab=pivot:overviewtab")
+	}
+	return err
 }
 
 
@@ -212,7 +224,7 @@ func DetectService(name string) (error, *WinService) {
 			
 			return errors.New("Service not found")
 		}
-		
+
 		return errors.New(res.Exception.ToString())
 	})
 	

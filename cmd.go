@@ -11,26 +11,25 @@ import (
 )
 
 type PowerShellLogger struct {
-
 }
 
 type SearchAppItem struct {
-	Name string
-	Version string
-	ID string
+	Name     string
+	Version  string
+	ID       string
 	Category string
 }
 
-func (*PowerShellLogger) Write(arg string)  {
+func (*PowerShellLogger) Write(arg string) {
 	log.Debug(arg)
 }
 
 var r = regexp.MustCompile(`([0-9a-zA-Z\ \:\.]+)[ ]+([0-9a-zA-Z\.]+)[ ]+([0-9a-zA-Z\.]+)[ ]+([0-9a-zA-Z\ \:\.]+)`)
 
-func ParseAppItem(raw string) (*SearchAppItem) {
+func ParseAppItem(raw string) *SearchAppItem {
 	found := r.FindStringSubmatch(raw)
 	item := new(SearchAppItem)
-	
+
 	if len(found) > 1 {
 		item.Name = found[1]
 	}
@@ -50,23 +49,23 @@ func InstallAppPackage(AppID string) error {
 	return RunScript(func(runner powershell.Runspace) error {
 		cmd := fmt.Sprintf(`winget install --id %s`, AppID)
 		log.Debug(cmd)
-		
+
 		res := runner.ExecScript(cmd, true, nil)
 		defer res.Close()
 		if res.Success() {
 			return nil
 		}
-		
+
 		return errors.New(res.Exception.ToString())
 	})
 }
 
-func SearchAppPackage(appName string) (error, []*SearchAppItem)  {
+func SearchAppPackage(appName string) (error, []*SearchAppItem) {
 	resultList := make([]*SearchAppItem, 0)
 	err := RunScript(func(runner powershell.Runspace) error {
 		cmd := fmt.Sprintf(`winget search -q %s`, appName)
 		log.Debug(cmd)
-		
+
 		res := runner.ExecScript(cmd, true, nil)
 		defer res.Close()
 		if res.Success() {
@@ -78,17 +77,17 @@ func SearchAppPackage(appName string) (error, []*SearchAppItem)  {
 			}
 			return nil
 		}
-		
+
 		return errors.New(res.Exception.ToString())
 	})
-	
+
 	return err, resultList
 }
 
 func RunScript(callback func(powershell.Runspace) error) error {
 	runSpace := powershell.CreateRunspace(new(PowerShellLogger), nil)
 	defer runSpace.Close()
-	
+
 	return callback(runSpace)
 }
 
@@ -96,19 +95,18 @@ func ReloadPathEnv() error {
 	return RunScript(func(runner powershell.Runspace) error {
 		cmd := `$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")`
 		//log.Debug(cmd)
-		
+
 		res := runner.ExecScript(cmd, true, nil)
 		defer res.Close()
 		if res.Success() {
 			return nil
 		}
-		
+
 		return errors.New(res.Exception.ToString())
 	})
 }
 
-
-func EnableWSL() error  {
+func EnableWSL() error {
 	return RunScript(func(runner powershell.Runspace) error {
 		cmd := `dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart`
 		log.Debug(cmd)
@@ -123,7 +121,7 @@ func EnableWSL() error  {
 	})
 }
 
-func EnableHyperV() error  {
+func EnableHyperV() error {
 	return RunScript(func(runner powershell.Runspace) error {
 		cmd := `dism.exe /online /enable-feature /featurename:Microsoft-Hyper-V /all /norestart`
 		log.Debug(cmd)
@@ -142,19 +140,24 @@ func EnableVM() error {
 	return RunScript(func(runner powershell.Runspace) error {
 		cmd := `dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart`
 		log.Debug(cmd)
-		
+
 		res := runner.ExecScript(cmd, true, nil)
 		defer res.Close()
 		if res.Success() {
 			return nil
 		}
-		
+
 		return errors.New(res.Exception.ToString())
 	})
 }
 
 func StartContainer(dir string, containerName string) error {
-	cmd := exec.Command("docker-compose", "--project-directory", dir,
+	wtCmd := ""
+	if err := IsWindowTerminalInstalled(); err == nil{
+		wtCmd = "wt"
+	}
+	cmd := exec.Command("cmd", "/C", "start", wtCmd, "docker-compose",
+		"--project-directory", fmt.Sprintf(`"%s"`, dir),
 		"--file", fmt.Sprintf(`%s/docker-compose.yml`, dir),
 		"--project-name", containerName,
 		"--", "up", "--detach", "--force-recreate")
@@ -163,18 +166,54 @@ func StartContainer(dir string, containerName string) error {
 		log.Error(err)
 		return err
 	}
-	err := cmd.Wait();
+	err := cmd.Wait()
 	if err != nil {
 		log.Error(err)
 		return err
 	}
-	
+
+	return nil
+}
+
+func RunPHPConsole(containerName string) error {
+	wtCmd := ""
+	if err := IsWindowTerminalInstalled(); err == nil{
+		wtCmd = "wt"
+	}
+
+	cmd := exec.Command("cmd", "/C", "start", wtCmd,
+		"docker", "exec", "-it", fmt.Sprintf(`%s_php_1`, containerName), "/bin/sh")
+
+	//log.Debugf("%s\n", cmd)
+	if err := cmd.Start(); err != nil {
+		log.Error(err)
+		return err
+	}
+
+	return nil
+}
+
+func PHPComposerInit(dir string) error {
+	wtCmd := ""
+	if err := IsWindowTerminalInstalled(); err == nil{
+		wtCmd = "wt"
+	}
+
+	cmd := exec.Command("cmd", "/C", "start", "/wait", "/D", filepath.FromSlash(dir), wtCmd,
+		"docker-compose", "run", "--no-deps", "--rm", "--workdir=/var/www", "--", "php", "composer", "update")
+
+	log.Debugf("%s\n", cmd)
+	if err := cmd.Start(); err != nil {
+		log.Error(err)
+		return err
+	}
+
 	return nil
 }
 
 func OpenBrowser(url string) {
 	var err error
-	
+
 	switch runtime.GOOS {
 	case "linux":
 		err = exec.Command("xdg-open", url).Start()
@@ -188,7 +227,7 @@ func OpenBrowser(url string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	
+
 }
 
 func StartDockerDesktop() error {
@@ -196,14 +235,14 @@ func StartDockerDesktop() error {
 	if err != nil {
 		return err
 	}
-	
+
 	execPath := filepath.Join(filepath.Dir(binPath), "../../Docker Desktop.exe")
-	
+
 	cmd := exec.Command(execPath)
 	err = cmd.Start()
 	if err != nil {
 		return err
 	}
-	
+
 	return nil
 }

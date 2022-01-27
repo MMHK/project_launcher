@@ -3,8 +3,10 @@ package main
 import (
 	_ "embed"
 	"html/template"
+	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
 )
 
 //go:embed frpc.ini
@@ -61,4 +63,29 @@ func (this *BootStrapConfig) BuildConfig(savePath string) error {
 	}
 
 	return nil
+}
+
+func LoadFrpcConfig(path string) (*FRPConfig, error) {
+	raw, err := ioutil.ReadFile(path)
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+	domainRule := regexp.MustCompile(`subdomain = ([^=]+)`)
+	hostRule := regexp.MustCompile(`server_addr = ([^=]+)`)
+	domainFound := domainRule.FindStringSubmatch(string(raw))
+	hostFound := hostRule.FindStringSubmatch(string(raw))
+	ServiceHost := ""
+	SubDomain := ""
+	if len(domainFound) > 1 {
+		SubDomain = domainFound[1]
+	}
+	if len(domainFound) > 1 {
+		ServiceHost = hostFound[1]
+	}
+
+	return &FRPConfig{
+		ServiceHost: ServiceHost,
+		SubDomain: SubDomain,
+	}, nil
 }

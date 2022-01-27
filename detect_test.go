@@ -42,6 +42,15 @@ func TestIsDockerInstalled(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 		t.Fail()
+
+		if MatchLauncherError(err, ERROR_DOCKER_DESKTOP_NOT_RUNNING) {
+			err = StartDockerDesktop()
+			if err != nil {
+				t.Error(err)
+				t.Fail()
+			}
+		}
+
 		return
 	}
 }
@@ -77,4 +86,13 @@ func TestLoadExistFrpcConfig(t *testing.T) {
 	}
 	
 	t.Log(subDomain)
+}
+
+func TestIsWindowTerminalInstalled(t *testing.T) {
+	err := IsWindowTerminalInstalled()
+	if err != nil {
+		t.Error(err)
+		t.Fail()
+		return
+	}
 }

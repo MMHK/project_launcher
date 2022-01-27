@@ -18,3 +18,15 @@ func TestBootStrapConfig_BuildConfig(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestLoadFrpcConfig(t *testing.T) {
+	path := "F:\\Projects\\speedyagency\\code\\public\\frpc.ini"
+	config, err := LoadFrpcConfig(path)
+	if err != nil {
+		t.Error(err)
+		t.Fail()
+		return
+	}
+
+	t.Logf("%v+", config)
+}
