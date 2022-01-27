@@ -15,7 +15,7 @@ func Test_SubDomainExist(t *testing.T) {
 		t.Log(i.Name)
 	}
 
-	exist := api.SubDomainExist("client02")
+	exist := api.SubDomainExist("sam-sa")
 
 	t.Log(exist)
 }

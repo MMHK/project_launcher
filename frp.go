@@ -107,6 +107,7 @@ func (this *FrpApi) GetHTTPProxyList() (*ProxyResp, error) {
 	return result, nil
 }
 
+// 判定 使用的子域名是否在使用中
 func (this *FrpApi) SubDomainExist(subDomain string) bool {
 	list, err := this.GetHTTPProxyList()
 	if err != nil {
@@ -118,7 +119,7 @@ func (this *FrpApi) SubDomainExist(subDomain string) bool {
 	}
 
 	for _, item := range list.Proxies {
-		if strings.EqualFold(item.Name, subDomain) {
+		if strings.EqualFold(item.Name, subDomain) && strings.EqualFold(item.Status, "online") {
 			return true
 		}
 	}

@@ -52,7 +52,7 @@ func getProjectDomain(defaultValue string) (string, error) {
 		api.DisableAuth()
 		exist := api.SubDomainExist(input)
 		if exist {
-			return errors.New(fmt.Sprintf("三级域名 %s 已经存在，请重新选择另外一个名字", input))
+			return errors.New(fmt.Sprintf("三级域名 %s 已经存在并使用中，请重新选择另外一个名字", input))
 		}
 		return nil
 	}
