@@ -1,0 +1,28 @@
+version: "3.9"
+services:
+  db:
+    image: "mysql:5.7"
+    restart: always
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: mysql50
+    ports:
+      - target: 3306
+        published: 3306
+    networks:
+      - shared
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - target: 8080
+        published: 8080
+    depends_on:
+      - db
+    networks:
+      - shared
+
+networks:
+  shared:
+    external:
+      name: "mm-network"

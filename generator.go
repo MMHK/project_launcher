@@ -50,17 +50,20 @@ func (this *BootStrapConfig) BuildConfig(savePath string) error {
 		return err
 	}
 
-	dcokerFile, err := os.Create(filepath.Join(savePath, `docker-compose.yml`))
-	if err != nil {
-		return err
-	}
-	defer dcokerFile.Close()
+	dockerComposePath := filepath.Join(savePath, `docker-compose.yml`)
+	if _, err := os.Stat(dockerComposePath); os.IsNotExist(err) {
+		dcokerFile, err := os.Create(dockerComposePath)
+		if err != nil {
+			return err
+		}
+		defer dcokerFile.Close()
 
-
-	err = dockerBuilder.Execute(dcokerFile, this.Docker)
-	if err != nil {
-		return err
+		err = dockerBuilder.Execute(dcokerFile, this.Docker)
+		if err != nil {
+			return err
+		}
 	}
+
 
 	return nil
 }
@@ -86,6 +89,6 @@ func LoadFrpcConfig(path string) (*FRPConfig, error) {
 
 	return &FRPConfig{
 		ServiceHost: ServiceHost,
-		SubDomain: SubDomain,
+		SubDomain:   SubDomain,
 	}, nil
 }

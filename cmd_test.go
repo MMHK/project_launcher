@@ -4,7 +4,6 @@ import (
 	"testing"
 )
 
-
 func TestSearchAppPackage(t *testing.T) {
 	appName := "docker"
 	err, list := SearchAppPackage(appName)
@@ -12,7 +11,7 @@ func TestSearchAppPackage(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	for _, row := range list {
 		t.Logf("%+v\n", row)
 	}
@@ -21,7 +20,7 @@ func TestSearchAppPackage(t *testing.T) {
 func TestInstallAppPackage(t *testing.T) {
 	appID := `Docker.DockerDesktop`
 	err := InstallAppPackage(appID)
-	
+
 	if err != nil {
 		t.Error(err)
 		return
@@ -98,6 +97,16 @@ func TestRunPHPConsole(t *testing.T) {
 func TestPHPComposerInit(t *testing.T) {
 	path := "F:/Projects/speedyagency/code/public"
 	err := PHPComposerInit(path)
+	if err != nil {
+		t.Error(err)
+		t.Fail()
+		return
+	}
+}
+
+func TestStopContainer(t *testing.T) {
+	path := "F:/Projects/speedyagency/insurance/public"
+	err := StopContainer(path, "sam-sa-ins")
 	if err != nil {
 		t.Error(err)
 		t.Fail()

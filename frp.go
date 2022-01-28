@@ -12,7 +12,7 @@ type FrpApi struct {
 	EndPoint string
 	AuthUser string
 	AuthPwd  string
-	Auth bool
+	Auth     bool
 }
 
 func NewFrpApi(endpoint string, adminUser string, adminPwd string) *FrpApi {
@@ -20,7 +20,7 @@ func NewFrpApi(endpoint string, adminUser string, adminPwd string) *FrpApi {
 		EndPoint: endpoint,
 		AuthUser: adminUser,
 		AuthPwd:  adminPwd,
-		Auth: true,
+		Auth:     true,
 	}
 }
 

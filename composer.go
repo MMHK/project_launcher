@@ -3,14 +3,14 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"os"
 	semver "github.com/Masterminds/semver/v3"
+	"os"
 	"strings"
 )
 
 type PHPComposerConfig struct {
-	Require *RequireDeps `json:"require"`
-	Config *ComposerConfig `json:"config"`
+	Require *RequireDeps    `json:"require"`
+	Config  *ComposerConfig `json:"config"`
 }
 
 type RequireDeps struct {
@@ -71,4 +71,3 @@ func (this *PHPComposerConfig) MatchVersion(versionList ...string) (string, erro
 
 	return "", errors.New(`no version match`)
 }
-

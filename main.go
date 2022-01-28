@@ -12,7 +12,7 @@ import (
 const DEMO_SERVICE_HOST = `192.168.33.6`
 const FRPS_API = `http://192.168.33.6:7001/api`
 
-func prepareRuntime() (error) {
+func prepareRuntime() error {
 	info, err := GetOSInfo()
 	if err != nil {
 		log.Error(err)
@@ -164,10 +164,32 @@ func ComposerInit() error {
 	return PHPComposerInit(dir)
 }
 
+func StopPHPWebProject() error {
+	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+
+	frpcPath := filepath.Join(dir, "frpc.ini")
+	frpcCfg, err := LoadFrpcConfig(frpcPath)
+	if err == nil && len(frpcCfg.SubDomain) > 0 {
+		return StopContainer(dir, frpcCfg.SubDomain)
+	}
+
+	return nil
+}
+
 func SelectMethods() {
 	prompt := promptui.Select{
 		Label: "请选择操作",
-		Items: []string{"1 启动PHP web项目", "2 进入PHP 项目 console", "3 初始化 PHP项目"},
+		Items: []string{
+			"1 启动PHP web项目",
+			"2 进入PHP 项目 console",
+			"3 初始化 PHP项目 (composer update)",
+			"4 停止PHP web项目",
+			//"5 启动 Mysql 服务 (待定)",
+		},
 	}
 
 	index, _, err := prompt.Run()
@@ -186,6 +208,9 @@ func SelectMethods() {
 		return
 	case 2:
 		ComposerInit()
+		return
+	case 3:
+		StopPHPWebProject()
 		return
 	}
 }

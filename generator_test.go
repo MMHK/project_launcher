@@ -6,7 +6,7 @@ func TestBootStrapConfig_BuildConfig(t *testing.T) {
 	conf := &BootStrapConfig{
 		Frp: &FRPConfig{
 			ServiceHost: "192.168.33.6",
-			SubDomain: "client03",
+			SubDomain:   "client03",
 		},
 		Docker: &DockerComposeConfig{
 			ImageVersion: "8",

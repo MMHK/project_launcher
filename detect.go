@@ -19,12 +19,12 @@ import (
 const DOCKER_DEPS_VERSION = `>=18362`
 
 type OSInfo struct {
-	CurrentVersion string
-	ProductName string
+	CurrentVersion            string
+	ProductName               string
 	CurrentMajorVersionNumber uint64
 	CurrentMinorVersionNumber uint64
-	ReleaseVersion string
-	BuildVersion string
+	ReleaseVersion            string
+	BuildVersion              string
 }
 
 func GetOSInfo() (*OSInfo, error) {
@@ -41,7 +41,7 @@ func GetOSInfo() (*OSInfo, error) {
 		return nil, err
 	}
 
-	pn , _, err := k.GetStringValue("ProductName")
+	pn, _, err := k.GetStringValue("ProductName")
 	if err != nil {
 		log.Error(err)
 		return nil, err
@@ -72,12 +72,12 @@ func GetOSInfo() (*OSInfo, error) {
 	}
 
 	return &OSInfo{
-		CurrentVersion: cv,
-		ProductName: pn,
+		CurrentVersion:            cv,
+		ProductName:               pn,
 		CurrentMajorVersionNumber: maj,
 		CurrentMinorVersionNumber: min,
-		BuildVersion: cb,
-		ReleaseVersion: rv,
+		BuildVersion:              cb,
+		ReleaseVersion:            rv,
 	}, nil
 }
 
@@ -128,7 +128,7 @@ func IsWinGetInstalled() (bool, string) {
 	err := RunScript(func(runner powershell.Runspace) error {
 		cmd := `winget -v`
 		log.Debug(cmd)
-		
+
 		res := runner.ExecScript(cmd, true, nil)
 		defer res.Close()
 		if res.Success() {
@@ -137,10 +137,10 @@ func IsWinGetInstalled() (bool, string) {
 			}
 			return nil
 		}
-		
+
 		return errors.New(res.Exception.ToString())
 	})
-	
+
 	if err != nil {
 		log.Error(err)
 		return false, ""
@@ -154,20 +154,20 @@ func IsWinGetInstalled() (bool, string) {
 	return true, output
 }
 
-func IsDockerInstalled() (error) {
+func IsDockerInstalled() error {
 	err, _ := DetectService(`com.docker.service`)
 	if err != nil {
 		log.Error(err)
 		return NewLauncherError(ERROR_DOCKER_DESKTOP_NOT_INSTALLED,
 			"请先安装 Docker Desktop, https://doc.weixin.qq.com/doc/w2_AGUAAwb2AKY9YO5hUlhSjODSUvwi6?scode=AEwAtAeZAAkacJBfyk")
 	}
-	
+
 	cmd := exec.Command("docker", "info")
 	err = cmd.Run()
 
 	if err != nil {
 		log.Error(err)
-		
+
 		return NewLauncherError(ERROR_DOCKER_DESKTOP_NOT_RUNNING,
 			"DockerDesktop 还未运行")
 	}
@@ -175,7 +175,7 @@ func IsDockerInstalled() (error) {
 	return nil
 }
 
-func IsWindowTerminalInstalled() (error) {
+func IsWindowTerminalInstalled() error {
 	cmd := exec.Command("wt", "-v")
 	err := cmd.Run()
 	if err != nil {
@@ -185,20 +185,18 @@ func IsWindowTerminalInstalled() (error) {
 	return err
 }
 
-
-const WINSERVICE_STATUS_STARTED = 4;
-const WINSERVICE_STATUS_STOPPED = 1;
+const WINSERVICE_STATUS_STARTED = 4
+const WINSERVICE_STATUS_STOPPED = 1
 
 type WinService struct {
-	Status      int `json:"Status"`
+	Status      int    `json:"Status"`
 	Name        string `json:"Name"`
 	DisplayName string `json:"DisplayName"`
 }
 
 func parseService(raw string) *WinService {
 	item := new(WinService)
-	
-	
+
 	decoder := json.NewDecoder(strings.NewReader(raw))
 	err := decoder.Decode(item)
 	if err != nil {
@@ -248,6 +246,6 @@ func LoadExistFrpcConfig(dir string) (string, error) {
 	if len(found) > 1 {
 		return strings.TrimSpace(found[1]), nil
 	}
-	
+
 	return "", errors.New("sub domain not found")
 }

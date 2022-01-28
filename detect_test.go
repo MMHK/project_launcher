@@ -61,7 +61,7 @@ func TestIsWinGetInstalled(t *testing.T) {
 		t.Error(`winget is not installed, Goto https://www.microsoft.com/p/app-installer/9nblggh4nns1 install`)
 		return
 	}
-	
+
 	t.Log(p)
 }
 
@@ -72,7 +72,7 @@ func TestDetectService(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Logf("%+v\n", service)
 }
 
@@ -84,7 +84,7 @@ func TestLoadExistFrpcConfig(t *testing.T) {
 		t.Fail()
 		return
 	}
-	
+
 	t.Log(subDomain)
 }
 

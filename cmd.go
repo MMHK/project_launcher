@@ -145,7 +145,7 @@ func EnableVM() error {
 
 func StartContainer(dir string, containerName string) error {
 	wtCmd := ""
-	if err := IsWindowTerminalInstalled(); err == nil{
+	if err := IsWindowTerminalInstalled(); err == nil {
 		wtCmd = "wt"
 	}
 	cmd := exec.Command("cmd", "/C", "start", wtCmd, "docker-compose",
@@ -167,9 +167,33 @@ func StartContainer(dir string, containerName string) error {
 	return nil
 }
 
+func StopContainer(dir string, containerName string) error {
+	wtCmd := ""
+	if err := IsWindowTerminalInstalled(); err == nil {
+		wtCmd = "wt"
+	}
+	cmd := exec.Command("cmd", "/C", "start", wtCmd, "docker-compose",
+		"--project-directory", filepath.FromSlash(dir),
+		"--file", fmt.Sprintf(`%s/docker-compose.yml`, dir),
+		"--project-name", containerName,
+		"--", "down")
+	//log.Debugf("%s\n", cmd)
+	if err := cmd.Start(); err != nil {
+		log.Error(err)
+		return err
+	}
+	err := cmd.Wait()
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+
+	return nil
+}
+
 func RunPHPConsole(containerName string) error {
 	wtCmd := ""
-	if err := IsWindowTerminalInstalled(); err == nil{
+	if err := IsWindowTerminalInstalled(); err == nil {
 		wtCmd = "wt"
 	}
 
@@ -187,7 +211,7 @@ func RunPHPConsole(containerName string) error {
 
 func PHPComposerInit(dir string) error {
 	wtCmd := ""
-	if err := IsWindowTerminalInstalled(); err == nil{
+	if err := IsWindowTerminalInstalled(); err == nil {
 		wtCmd = "wt"
 	}
 
