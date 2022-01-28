@@ -12,7 +12,7 @@ import (
 const DEMO_SERVICE_HOST = `192.168.33.6`
 const FRPS_API = `http://192.168.33.6:7001/api`
 
-func prepareRuntime() error {
+func prepareRuntime() (error) {
 	info, err := GetOSInfo()
 	if err != nil {
 		log.Error(err)
@@ -31,10 +31,10 @@ func prepareRuntime() error {
 	if err != nil {
 		log.Error(err)
 		if MatchLauncherError(err, ERROR_DOCKER_DESKTOP_NOT_RUNNING) {
-			err = StartDockerDesktop()
-			if err != nil {
-				log.Error(err)
-				return err
+			startError := StartDockerDesktop()
+			if startError != nil {
+				log.Error(startError)
+				return startError
 			}
 		}
 		return err
@@ -193,7 +193,13 @@ func SelectMethods() {
 func main() {
 	ReloadPathEnv()
 
-	prepareRuntime()
+	runtimeError := prepareRuntime()
+	if runtimeError != nil {
+		log.Error(`环境检查有问题，请解决后重试， 输入任意键退出`)
+		fmt.Scanf("h")
+		os.Exit(1)
+		return
+	}
 
 start:
 

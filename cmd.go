@@ -93,7 +93,7 @@ func RunScript(callback func(powershell.Runspace) error) error {
 
 func ReloadPathEnv() error {
 	commandLine := `$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")`
-	cmd := exec.Command("powershell", "-Command", fmt.Sprintf(`{%s}`, commandLine))
+	cmd := exec.Command("powershell", "-Command", commandLine)
 
 	return cmd.Run()
 }
@@ -174,7 +174,7 @@ func RunPHPConsole(containerName string) error {
 	}
 
 	cmd := exec.Command("cmd", "/C", "start", wtCmd,
-		"docker", "exec", "-it", fmt.Sprintf(`%s_php_1`, containerName), "/bin/sh")
+		"docker", "exec", "--workdir=/var/www", "-it", fmt.Sprintf(`%s_php_1`, containerName), "/bin/sh")
 
 	//log.Debugf("%s\n", cmd)
 	if err := cmd.Start(); err != nil {

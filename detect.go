@@ -163,8 +163,7 @@ func IsDockerInstalled() (error) {
 	}
 	
 	cmd := exec.Command("docker", "info")
-	err = cmd.Start()
-	err = cmd.Wait()
+	err = cmd.Run()
 
 	if err != nil {
 		log.Error(err)
