@@ -113,3 +113,12 @@ func TestStopContainer(t *testing.T) {
 		return
 	}
 }
+
+func TestStartLocalMySQLServer(t *testing.T) {
+	err := StartLocalMySQLServer()
+	if err != nil {
+		t.Error(err)
+		t.Fail()
+		return
+	}
+}

@@ -30,3 +30,14 @@ func TestLoadFrpcConfig(t *testing.T) {
 
 	t.Logf("%v+", config)
 }
+
+func TestBuildMySQLConfig(t *testing.T) {
+	mysqlCfgPath, err := BuildMySQLConfig()
+	if err != nil {
+		t.Error(err)
+		t.Fail()
+		return
+	}
+
+	t.Logf(`mysql compose config file path: %s`, mysqlCfgPath)
+}

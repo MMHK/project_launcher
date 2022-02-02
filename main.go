@@ -180,6 +180,20 @@ func StopPHPWebProject() error {
 	return nil
 }
 
+func StartMySQLServer() error {
+	err := StartLocalMySQLServer()
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+
+	log.Warning(`MySQL 服务启动成功，即将打开 adminer 管理入口`)
+	log.Warning(`MySQL 默认账密 root/mysql50`)
+	log.Warning(`MySQL endpoint: host.docker.internal`)
+	OpenBrowser(`http://localhost:8088`)
+	return nil
+}
+
 func SelectMethods() {
 	prompt := promptui.Select{
 		Label: "请选择操作",
@@ -188,7 +202,7 @@ func SelectMethods() {
 			"2 进入PHP 项目 console",
 			"3 初始化 PHP项目 (composer update)",
 			"4 停止PHP web项目",
-			//"5 启动 Mysql 服务 (待定)",
+			"5 启动 MySQL 服务",
 		},
 	}
 
@@ -212,6 +226,10 @@ func SelectMethods() {
 	case 3:
 		StopPHPWebProject()
 		return
+	case 4:
+		StartMySQLServer()
+		return
+
 	}
 }
 

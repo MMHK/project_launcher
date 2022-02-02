@@ -262,3 +262,27 @@ func StartDockerDesktop() error {
 
 	return nil
 }
+
+
+func StartLocalMySQLServer() error {
+	mysqlCfgPath, err := BuildMySQLConfig()
+	if err != nil {
+		return err
+	}
+
+	wtCmd := ""
+	if err := IsWindowTerminalInstalled(); err == nil {
+		wtCmd = "wt"
+	}
+
+	cmd := exec.Command("cmd", "/C", "start", wtCmd,
+		"docker-compose", "--file", filepath.FromSlash(mysqlCfgPath), "--project-name", "mysql", "up", "-d")
+
+	log.Debugf("%s\n", cmd)
+	if err := cmd.Start(); err != nil {
+		log.Error(err)
+		return err
+	}
+
+	return nil
+}

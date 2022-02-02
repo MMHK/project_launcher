@@ -15,9 +15,17 @@ var frpConfigFile string
 //go:embed docker-compose.yml
 var ComposeFile string
 
+//go:embed mysql-compose.yml
+var MySQLComposeFile string
+
 type FRPConfig struct {
 	ServiceHost string
 	SubDomain   string
+}
+
+type MySQLComposeConfig struct {
+	MySQLDATAPath string
+	AdminerPort int
 }
 
 type DockerComposeConfig struct {
@@ -91,4 +99,45 @@ func LoadFrpcConfig(path string) (*FRPConfig, error) {
 		ServiceHost: ServiceHost,
 		SubDomain:   SubDomain,
 	}, nil
+}
+
+func GetDefaultMySQLDataPath() string {
+	dataPath, err := os.UserHomeDir()
+	if err != nil {
+		log.Error(err)
+		return ""
+	}
+
+	return dataPath
+}
+
+func BuildMySQLConfig() (string, error) {
+	savePath := os.TempDir()
+
+	mysqlDataPath := filepath.Join(GetDefaultMySQLDataPath(), "mysql", "data")
+	if _, err := os.Stat(mysqlDataPath); os.IsNotExist(err) {
+		os.MkdirAll(mysqlDataPath, 0777)
+	}
+
+	mysqlCfgBuilder, err := template.New("frp").Parse(MySQLComposeFile)
+	if err != nil {
+		return "", err
+	}
+	tempCfgFilePath := filepath.Join(savePath, `mysql-compose.yml`)
+	//log.Debugf(`mysql compose file path = %s`, tempCfgFilePath)
+	mysqlCfgFile, err := os.Create(tempCfgFilePath)
+	if err != nil {
+		return "", err
+	}
+	defer mysqlCfgFile.Close()
+
+	err = mysqlCfgBuilder.Execute(mysqlCfgFile, &MySQLComposeConfig{
+		MySQLDATAPath: mysqlDataPath,
+		AdminerPort: 8088,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return tempCfgFilePath, nil
 }

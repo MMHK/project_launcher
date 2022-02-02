@@ -6,6 +6,8 @@ services:
     command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     environment:
       MYSQL_ROOT_PASSWORD: mysql50
+    volumes:
+      - {{.MySQLDATAPath}}:/var/lib/mysql
     ports:
       - target: 3306
         published: 3306
@@ -14,6 +16,6 @@ services:
     restart: always
     ports:
       - target: 8080
-        published: 8080
+        published: {{.AdminerPort}}
     depends_on:
       - db
