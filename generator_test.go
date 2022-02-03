@@ -41,3 +41,15 @@ func TestBuildMySQLConfig(t *testing.T) {
 
 	t.Logf(`mysql compose config file path: %s`, mysqlCfgPath)
 }
+
+func TestBuildFrpsConfig(t *testing.T) {
+	confPath, err := BuildFrpsConfig()
+	if err != nil {
+		t.Error(err)
+		t.Fail()
+		return
+	}
+
+
+	t.Logf(`frps compose config file path: %s`, confPath)
+}

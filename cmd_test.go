@@ -122,3 +122,22 @@ func TestStartLocalMySQLServer(t *testing.T) {
 		return
 	}
 }
+
+func TestStartLocalFRPS(t *testing.T) {
+	err := StartLocalFRPS()
+	if err != nil {
+		t.Error(err)
+		t.Fail()
+		return
+	}
+}
+
+func TestAddLocalHostName(t *testing.T) {
+	hostname := `sam-test.localhost`
+	err := AddLocalHostName(hostname)
+	if err != nil {
+		t.Error(err)
+		t.Fail()
+		return
+	}
+}

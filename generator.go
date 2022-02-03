@@ -18,9 +18,18 @@ var ComposeFile string
 //go:embed mysql-compose.yml
 var MySQLComposeFile string
 
+//go:embed frps-compose.yml
+var FrpsComposeFile string
+//go:embed frps.ini
+var FrpsIniFile string
+
 type FRPConfig struct {
 	ServiceHost string
 	SubDomain   string
+}
+
+type FRPSComposeConfig struct {
+	FrpsConfPath string
 }
 
 type MySQLComposeConfig struct {
@@ -140,4 +149,36 @@ func BuildMySQLConfig() (string, error) {
 	}
 
 	return tempCfgFilePath, nil
+}
+
+func BuildFrpsConfig() (string, error) {
+	savePath := os.TempDir()
+
+	FrpsIniPath := filepath.Join(savePath, `frps.ini`)
+	FrpsConfPath := filepath.Join(savePath, `frps-compose.yml`)
+
+	err := ioutil.WriteFile(FrpsIniPath, []byte(FrpsIniFile), 0777)
+	if err != nil {
+		return "", err
+	}
+
+	frpsConfBuilder, err := template.New("frps").Parse(FrpsComposeFile)
+	if err != nil {
+		return "", err
+	}
+	log.Debugf(`mysql compose file path = %s`, FrpsConfPath)
+	frpsConf, err := os.Create(FrpsConfPath)
+	if err != nil {
+		return "", err
+	}
+	defer frpsConf.Close()
+
+	err = frpsConfBuilder.Execute(frpsConf, &FRPSComposeConfig{
+		FrpsConfPath: filepath.ToSlash(FrpsIniPath),
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return FrpsConfPath, nil
 }

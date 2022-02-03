@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/KnicKnic/go-powershell/pkg/powershell"
+	"github.com/goodhosts/hostsfile"
 	"os/exec"
 	"path/filepath"
 	"regexp"
@@ -285,4 +286,45 @@ func StartLocalMySQLServer() error {
 	}
 
 	return nil
+}
+
+func StartLocalFRPS() error {
+	frpsConfPath, err := BuildFrpsConfig()
+	if err != nil {
+		return err
+	}
+
+	wtCmd := ""
+	if err := IsWindowTerminalInstalled(); err == nil {
+		wtCmd = "wt"
+	}
+
+	cmd := exec.Command("cmd", "/C", "start", wtCmd,
+		"docker-compose", "--file", filepath.FromSlash(frpsConfPath), "--project-name", "frps", "up", "-d")
+
+	log.Debugf("%s\n", cmd)
+	if err := cmd.Start(); err != nil {
+		log.Error(err)
+		return err
+	}
+
+	return nil
+}
+
+func AddLocalHostName(hostname string) error {
+	hfile, err := hostsfile.NewHosts()
+	if err != nil {
+		return err
+	}
+
+	if hfile.Has(`127.0.0.1`, hostname) {
+		return nil
+	}
+
+	err = hfile.Add(`127.0.0.1`, hostname)
+	if err != nil {
+		return err
+	}
+
+	return hfile.Flush()
 }

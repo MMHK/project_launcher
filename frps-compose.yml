@@ -1,0 +1,14 @@
+version: "3.9"
+services:
+  frps:
+    image: "snowdreamtech/frps:0.36.2"
+    volumes:
+      - {{.FrpsConfPath}}:/etc/frp/frps.ini
+    restart: always
+    ports:
+      - target: 80
+        published: 80
+      - target: 7000
+        published: 7000
+      - target: 7001
+        published: 7001
