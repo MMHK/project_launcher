@@ -328,3 +328,26 @@ func AddLocalHostName(hostname string) error {
 
 	return hfile.Flush()
 }
+
+func StartRedisService() error {
+	redisConfPath, err := BuildRedisConfig()
+	if err != nil {
+		return err
+	}
+
+	wtCmd := ""
+	if err := IsWindowTerminalInstalled(); err == nil {
+		wtCmd = "wt"
+	}
+
+	cmd := exec.Command("cmd", "/C", "start", wtCmd,
+		"docker-compose", "--file", filepath.FromSlash(redisConfPath), "--project-name", "redis", "up", "-d")
+
+	log.Debugf("%s\n", cmd)
+	if err := cmd.Start(); err != nil {
+		log.Error(err)
+		return err
+	}
+
+	return nil
+}

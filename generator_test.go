@@ -53,3 +53,14 @@ func TestBuildFrpsConfig(t *testing.T) {
 
 	t.Logf(`frps compose config file path: %s`, confPath)
 }
+
+func TestBuildRedisConfig(t *testing.T) {
+	confPath, err := BuildRedisConfig()
+	if err != nil {
+		t.Error(err)
+		t.Fail()
+		return
+	}
+
+	t.Log(confPath)
+}

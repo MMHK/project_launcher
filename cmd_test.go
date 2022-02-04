@@ -141,3 +141,12 @@ func TestAddLocalHostName(t *testing.T) {
 		return
 	}
 }
+
+func TestStartRedisService(t *testing.T) {
+	err := StartRedisService()
+	if err != nil {
+		t.Error(err)
+		t.Fail()
+		return
+	}
+}

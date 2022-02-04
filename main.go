@@ -228,6 +228,16 @@ func StartMySQLServer() error {
 	return nil
 }
 
+func StartLocalRedisServer() error {
+	err := StartRedisService()
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+	log.Warning("\n-------------\nRedis 服务启动成功 \nRedis endpoint: host.docker.internal\n-------------\n")
+	return nil
+}
+
 func SelectMethods() {
 	prompt := promptui.Select{
 		Label: "请选择操作",
@@ -238,6 +248,7 @@ func SelectMethods() {
 			"4 初始化 PHP项目 (composer update)",
 			"5 停止PHP web项目",
 			"6 启动 MySQL 服务",
+			"7 启动 Redis 服务",
 		},
 	}
 
@@ -267,7 +278,9 @@ func SelectMethods() {
 	case 5:
 		StartMySQLServer()
 		return
-
+	case 6:
+		StartLocalRedisServer()
+		return
 	}
 }
 

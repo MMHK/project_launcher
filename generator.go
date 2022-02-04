@@ -22,6 +22,8 @@ var MySQLComposeFile string
 var FrpsComposeFile string
 //go:embed frps.ini
 var FrpsIniFile string
+//go:embed redis-compose.yml
+var RedisComposeFile string
 
 type FRPConfig struct {
 	ServiceHost string
@@ -35,6 +37,10 @@ type FRPSComposeConfig struct {
 type MySQLComposeConfig struct {
 	MySQLDATAPath string
 	AdminerPort int
+}
+
+type RedisComposeConfig struct {
+	RedisDataPath string
 }
 
 type DockerComposeConfig struct {
@@ -149,6 +155,32 @@ func BuildMySQLConfig() (string, error) {
 	}
 
 	return tempCfgFilePath, nil
+}
+
+func BuildRedisConfig() (string, error) {
+	savePath := os.TempDir()
+
+	redisDataPath := filepath.Join(GetDefaultMySQLDataPath(), "redis", "data")
+	if _, err := os.Stat(redisDataPath); os.IsNotExist(err) {
+		os.MkdirAll(redisDataPath, 0777)
+	}
+
+	tmpRedisConfPath := filepath.Join(savePath, `redis-compose.yml`)
+	redisConfFile, err := os.Create(tmpRedisConfPath)
+	if err != nil {
+		return "", err
+	}
+	defer redisConfFile.Close()
+
+	redisBuilder, err := template.New("redis").Parse(RedisComposeFile)
+	err = redisBuilder.Execute(redisConfFile, &RedisComposeConfig{
+		RedisDataPath: redisDataPath,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return tmpRedisConfPath, nil
 }
 
 func BuildFrpsConfig() (string, error) {

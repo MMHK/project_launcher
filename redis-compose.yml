@@ -1,0 +1,10 @@
+version: "3.9"
+services:
+  redis:
+    image: "redis:6.2-alpine"
+    restart: always
+    volumes:
+      - {{.RedisDataPath}}:/data
+    ports:
+      - target: 6379
+        published: 6379
