@@ -25,7 +25,7 @@ type ComposerConfig struct {
 	Platform *RuntimePlatform `json:"platform"`
 }
 
-func LoadComposerJOSN(filePath string) (*PHPComposerConfig, error) {
+func LoadComposerJSON(filePath string) (*PHPComposerConfig, error) {
 	f, err := os.Open(filePath)
 	if err != nil {
 		return nil, err

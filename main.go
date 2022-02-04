@@ -10,7 +10,9 @@ import (
 )
 
 const DEMO_SERVICE_HOST = `192.168.33.6`
+const LOCAL_SERVICE_HOST = `host.docker.internal`
 const FRPS_API = `http://192.168.33.6:7001/api`
+const FRPS_LOCAL_API = `http://host.docker.internal:7001/api`
 
 func prepareRuntime() error {
 	info, err := GetOSInfo()
@@ -43,12 +45,18 @@ func prepareRuntime() error {
 	return nil
 }
 
-func getProjectDomain(defaultValue string) (string, error) {
+func getProjectDomain(defaultValue string, asLocalService bool) (string, error) {
 	validate := func(input string) error {
 		if len(input) <= 0 {
 			return errors.New("必须提供一个项目名")
 		}
-		api := NewFrpApi(FRPS_API, "", "")
+
+		frpsEndPoint := FRPS_API
+		if asLocalService {
+			frpsEndPoint = FRPS_LOCAL_API
+		}
+
+		api := NewFrpApi(frpsEndPoint, "", "")
 		api.DisableAuth()
 		exist := api.SubDomainExist(input)
 		if exist {
@@ -66,7 +74,16 @@ func getProjectDomain(defaultValue string) (string, error) {
 	return prompt.Run()
 }
 
-func StartPHPWebProject() error {
+func StartPHPWebProject(asLocalService bool) error {
+	if asLocalService {
+		log.Info(`启动本地 FPRS service`)
+		err := StartLocalFRPS()
+		if err != nil {
+			log.Error(err)
+			return err
+		}
+	}
+
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
 		log.Error(err)
@@ -81,7 +98,7 @@ func StartPHPWebProject() error {
 	}
 
 inputProjectName:
-	projectName, err := getProjectDomain(defaultProjectName)
+	projectName, err := getProjectDomain(defaultProjectName, asLocalService)
 	if err != nil {
 		log.Error(err)
 		goto inputProjectName
@@ -95,7 +112,7 @@ inputProjectName:
 		log.Error("未发现 composer.json")
 		return err
 	}
-	conf, err := LoadComposerJOSN(composerConfigPath)
+	conf, err := LoadComposerJSON(composerConfigPath)
 	if err != nil {
 		log.Error(err)
 		return err
@@ -106,9 +123,14 @@ inputProjectName:
 	}
 	log.Infof("配到PHP 运行版本为 %s \n", phpver)
 
+	serviceHost := DEMO_SERVICE_HOST
+	if asLocalService {
+		serviceHost = LOCAL_SERVICE_HOST
+	}
+
 	builder := &BootStrapConfig{
 		Frp: &FRPConfig{
-			ServiceHost: DEMO_SERVICE_HOST,
+			ServiceHost: serviceHost,
 			SubDomain:   projectName,
 		},
 		Docker: &DockerComposeConfig{
@@ -122,6 +144,15 @@ inputProjectName:
 		return err
 	}
 
+	if asLocalService {
+		vHostName := fmt.Sprintf(`%s.localhost`, projectName)
+		err = AddLocalHostName(vHostName)
+		if err != nil {
+			log.Error(err)
+			return err
+		}
+	}
+
 	// 启动 docker compose 服务组
 	log.Info("准备启动容器")
 	err = StartContainer(dir, projectName)
@@ -131,8 +162,13 @@ inputProjectName:
 	}
 	// 打开browser 访问 外网绑定网址
 	go func() {
-		log.Infof("请访问 http://%s.dev.mixmedia.com \n", projectName)
-		OpenBrowser(fmt.Sprintf(`http://%s.dev.mixmedia.com`, projectName))
+		vhostURL := fmt.Sprintf(`http://%s.dev.mixmedia.com`, projectName)
+		if asLocalService {
+			vhostURL = fmt.Sprintf(`http://%s.localhost`, projectName)
+		}
+
+		log.Infof("请访问 %s \n", vhostURL)
+		OpenBrowser(vhostURL)
 	}()
 
 	return nil
@@ -187,9 +223,7 @@ func StartMySQLServer() error {
 		return err
 	}
 
-	log.Warning(`MySQL 服务启动成功，即将打开 adminer 管理入口`)
-	log.Warning(`MySQL 默认账密 root/mysql50`)
-	log.Warning(`MySQL endpoint: host.docker.internal`)
+	log.Warning("\n-------------\nMySQL 服务启动成功，即将打开 adminer 管理入 \nMySQL 默认账密 root/mysql50\nMySQL endpoint: host.docker.internal\n-------------\n")
 	OpenBrowser(`http://localhost:8088`)
 	return nil
 }
@@ -198,11 +232,12 @@ func SelectMethods() {
 	prompt := promptui.Select{
 		Label: "请选择操作",
 		Items: []string{
-			"1 启动PHP web项目",
-			"2 进入PHP 项目 console",
-			"3 初始化 PHP项目 (composer update)",
-			"4 停止PHP web项目",
-			"5 启动 MySQL 服务",
+			"1 启动PHP web项目 (外网地址)",
+			"2 启动PHP web项目 (本地地址)",
+			"3 进入PHP 项目 console",
+			"4 初始化 PHP项目 (composer update)",
+			"5 停止PHP web项目",
+			"6 启动 MySQL 服务",
 		},
 	}
 
@@ -215,18 +250,21 @@ func SelectMethods() {
 
 	switch index {
 	case 0:
-		StartPHPWebProject()
+		StartPHPWebProject(false)
 		return
 	case 1:
-		PHPConsole()
+		StartPHPWebProject(true)
 		return
 	case 2:
-		ComposerInit()
+		PHPConsole()
 		return
 	case 3:
-		StopPHPWebProject()
+		ComposerInit()
 		return
 	case 4:
+		StopPHPWebProject()
+		return
+	case 5:
 		StartMySQLServer()
 		return
 

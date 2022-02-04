@@ -3,7 +3,7 @@ package main
 import "testing"
 
 func getInstance() (*PHPComposerConfig, error) {
-	return LoadComposerJOSN(getLocalPath(`composer.json`))
+	return LoadComposerJSON(getLocalPath(`composer.json`))
 }
 
 func TestLoadComposerJOSN(t *testing.T) {

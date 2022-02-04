@@ -153,7 +153,7 @@ func StartContainer(dir string, containerName string) error {
 		"--project-directory", filepath.FromSlash(dir),
 		"--file", fmt.Sprintf(`%s/docker-compose.yml`, dir),
 		"--project-name", containerName,
-		"--", "up", "--detach", "--force-recreate")
+		"up", "--detach", "--force-recreate")
 	//log.Debugf("%s\n", cmd)
 	if err := cmd.Start(); err != nil {
 		log.Error(err)
@@ -177,7 +177,7 @@ func StopContainer(dir string, containerName string) error {
 		"--project-directory", filepath.FromSlash(dir),
 		"--file", fmt.Sprintf(`%s/docker-compose.yml`, dir),
 		"--project-name", containerName,
-		"--", "down")
+		"down")
 	//log.Debugf("%s\n", cmd)
 	if err := cmd.Start(); err != nil {
 		log.Error(err)
@@ -217,7 +217,7 @@ func PHPComposerInit(dir string) error {
 	}
 
 	cmd := exec.Command("cmd", "/C", "start", "/wait", "/D", filepath.FromSlash(dir), wtCmd,
-		"docker-compose", "run", "--no-deps", "--rm", "--workdir=/var/www", "--", "php", "composer", "update")
+		"docker-compose", "run", "--no-deps", "--rm", "--workdir=/var/www", "php", "composer", "update")
 
 	log.Debugf("%s\n", cmd)
 	if err := cmd.Start(); err != nil {
