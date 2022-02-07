@@ -96,3 +96,39 @@ func TestIsWindowTerminalInstalled(t *testing.T) {
 		return
 	}
 }
+
+func TestIsWordPressProject(t *testing.T) {
+	dir := "F:\\Projects\\sjcaa-wp\\code"
+	flag := IsWordPressProject(dir)
+	if flag  {
+		return
+	}
+
+	t.Error("not a wordpres project")
+	t.Fail()
+
+}
+
+func TestGetPHPDependFromWPDir(t *testing.T) {
+	dir := "F:\\Projects\\sjcaa-wp\\code"
+	version, err := GetPHPDependFromWPDir(dir)
+	if err != nil {
+		t.Error(err)
+		t.Fail()
+		return
+	}
+
+	t.Log(version)
+}
+
+func TestMatchWordPressPHPVersion(t *testing.T) {
+	wpVersion := "7"
+	version, err := MatchWordPressPHPVersion(wpVersion, "7.0", "7.2", "8.1", "8")
+	if err != nil {
+		t.Error(err)
+		t.Fail()
+		return
+	}
+
+	t.Log(version)
+}

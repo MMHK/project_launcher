@@ -249,3 +249,49 @@ func LoadExistFrpcConfig(dir string) (string, error) {
 
 	return "", errors.New("sub domain not found")
 }
+
+func IsWordPressProject(dir string) bool {
+	projectRoot := filepath.Join(dir, "wp-load.php")
+	if _, err := os.Stat(projectRoot); err != nil && os.IsNotExist(err) {
+		return false
+	}
+	return true
+}
+
+func GetPHPDependFromWPDir(dir string) (string, error) {
+	includedPaths := filepath.Join(dir, "wp-includes", "version.php")
+	versionContent, err := ioutil.ReadFile(includedPaths)
+	if err != nil {
+		return "", err
+	}
+
+	r := regexp.MustCompile(`\$required_php_version = '([^']+)'`)
+	found := r.FindStringSubmatch(string(versionContent))
+	if len(found) > 1 {
+		return found[1], nil
+	}
+
+	return "", errors.New("php version can not be found")
+}
+
+func MatchWordPressPHPVersion(version string, targetsVersion ...string) (string, error) {
+	baseVersion := "7.0"
+
+	ver := semver.MustParse(version)
+
+	for _, v := range targetsVersion {
+		targetConstraint := fmt.Sprintf(`~%s`, v)
+		constraint, err := semver.NewConstraint(targetConstraint)
+		if err != nil {
+			return "", err
+		}
+
+		if constraint.Check(ver) {
+			return v, nil
+		}
+	}
+
+	log.Debug(baseVersion)
+
+	return baseVersion, nil
+}
