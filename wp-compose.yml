@@ -1,0 +1,25 @@
+version: "3.9"
+services:
+  php:
+    image: "mmhk/php-docker:{{.ImageVersion}}-fpm"
+    volumes:
+      - .:/var/www/html
+    environment:
+      WWW_UID: 1000
+      WWW_GID: 1000
+  nginx:
+    depends_on:
+      - php
+    image: "mmhk/php-docker:8-fpm-nginx"
+    volumes:
+      - .:/var/www/html
+    links:
+      - "php"
+  frpc:
+    depends_on:
+      - nginx
+    image: "snowdreamtech/frpc:0.36.2"
+    volumes:
+      - ./frpc.ini:/etc/frp/frpc.ini
+    links:
+      - "nginx"

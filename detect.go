@@ -274,24 +274,69 @@ func GetPHPDependFromWPDir(dir string) (string, error) {
 	return "", errors.New("php version can not be found")
 }
 
-func MatchWordPressPHPVersion(version string, targetsVersion ...string) (string, error) {
+type WPPHPVerion struct {
+	WPVersion  string `json:"wp"`
+	PHPVersion string `json:"php"`
+}
+
+func MatchWordPressPHPVersion(wpVersion string) (string, error) {
 	baseVersion := "7.0"
+	wpPHPVersionMapping := []WPPHPVerion{
+		WPPHPVerion{WPVersion: "~5.6", PHPVersion: "8"},
+		WPPHPVerion{WPVersion: "~5.3", PHPVersion: "7.2"},
+		WPPHPVerion{WPVersion: "~5.2", PHPVersion: "7.2"},
+		WPPHPVerion{WPVersion: "~5.0", PHPVersion: "7.2"},
+		WPPHPVerion{WPVersion: "~4.9", PHPVersion: "7.2"},
+		WPPHPVerion{WPVersion: "~4.7", PHPVersion: "7.1"},
+		WPPHPVerion{WPVersion: "~4.4", PHPVersion: "7.0"},
+		WPPHPVerion{WPVersion: "~4.1", PHPVersion: "7.0"},
+	}
 
-	ver := semver.MustParse(version)
+	ver := semver.MustParse(wpVersion)
 
-	for _, v := range targetsVersion {
-		targetConstraint := fmt.Sprintf(`~%s`, v)
-		constraint, err := semver.NewConstraint(targetConstraint)
+	for _, targetConstraint := range wpPHPVersionMapping {
+		constraint, err := semver.NewConstraint(targetConstraint.WPVersion)
 		if err != nil {
 			return "", err
 		}
 
+		log.Debug(constraint)
+
 		if constraint.Check(ver) {
-			return v, nil
+			return targetConstraint.PHPVersion, nil
 		}
 	}
 
 	log.Debug(baseVersion)
 
 	return baseVersion, nil
+}
+
+func FindPublicDir(baseDir string) (string, error) {
+	if IsWordPressProject(baseDir) {
+		return baseDir, nil
+	}
+	baseDir, err := filepath.Abs(baseDir)
+	if err != nil {
+		return "", errors.New("不是一个合法的项目地址")
+	}
+
+	composerConfigPath := filepath.Join(baseDir, "composer.json")
+	depth := 1
+tryMatch:
+	if _, err := os.Stat(composerConfigPath); err != nil && os.IsNotExist(err) {
+		baseDir = filepath.Dir(baseDir)
+		composerConfigPath = filepath.Join(baseDir, "composer.json")
+		depth++
+		if depth < 5 {
+			goto tryMatch
+		}
+	}
+
+	publicDir := filepath.Join(baseDir, "public")
+	if _, err := os.Stat(publicDir); err != nil && os.IsNotExist(err) {
+		return "", errors.New("不是一个合法的项目地址")
+	}
+
+	return publicDir, nil
 }

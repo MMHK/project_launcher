@@ -14,6 +14,8 @@ var frpConfigFile string
 
 //go:embed docker-compose.yml
 var ComposeFile string
+//go:embed wp-compose.yml
+var WPComposeFile string
 
 //go:embed mysql-compose.yml
 var MySQLComposeFile string
@@ -52,12 +54,12 @@ type BootStrapConfig struct {
 	Docker *DockerComposeConfig
 }
 
-func (this *BootStrapConfig) BuildConfig(savePath string) error {
+func (this *BootStrapConfig) BuildConfig(saveDir string) error {
 	frpBuilder, err := template.New("frp").Parse(frpConfigFile)
 	if err != nil {
 		return err
 	}
-	frpFile, err := os.Create(filepath.Join(savePath, `frpc.ini`))
+	frpFile, err := os.Create(filepath.Join(saveDir, `frpc.ini`))
 	if err != nil {
 		return err
 	}
@@ -68,12 +70,16 @@ func (this *BootStrapConfig) BuildConfig(savePath string) error {
 		return err
 	}
 
-	dockerBuilder, err := template.New("docker").Parse(ComposeFile)
+	tplContent := ComposeFile
+	if IsWordPressProject(saveDir) {
+		tplContent = WPComposeFile
+	}
+	dockerBuilder, err := template.New("docker").Parse(tplContent)
 	if err != nil {
 		return err
 	}
 
-	dockerComposePath := filepath.Join(savePath, `docker-compose.yml`)
+	dockerComposePath := filepath.Join(saveDir, `docker-compose.yml`)
 	if _, err := os.Stat(dockerComposePath); os.IsNotExist(err) {
 		dcokerFile, err := os.Create(dockerComposePath)
 		if err != nil {

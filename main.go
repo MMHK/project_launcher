@@ -90,6 +90,12 @@ func StartPHPWebProject(asLocalService bool) error {
 		return err
 	}
 
+	dir, err = FindPublicDir(dir)
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+
 	frpcPath := filepath.Join(dir, "frpc.ini")
 	frpcCfg, err := LoadFrpcConfig(frpcPath)
 	defaultProjectName := ""
