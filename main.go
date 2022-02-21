@@ -6,7 +6,6 @@ import (
 	"github.com/manifoldco/promptui"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 const DEMO_SERVICE_HOST = `192.168.33.6`
@@ -113,21 +112,11 @@ inputProjectName:
 	// 匹配项目 composer.json
 	// 并根据composer 分析出php 版本
 	// 选择对应的 docker images
-	composerConfigPath := filepath.Join(dir, "../composer.json")
-	if _, err := os.Stat(composerConfigPath); os.IsNotExist(err) {
-		log.Error("未发现 composer.json")
-		return err
-	}
-	conf, err := LoadComposerJSON(composerConfigPath)
+	phpver, err := DetectPHPVersion(dir)
 	if err != nil {
 		log.Error(err)
 		return err
 	}
-	phpver, err := conf.MatchVersion("7.0", "7.2.99", "8")
-	if strings.EqualFold(phpver, "7.2.99") {
-		phpver = "7.2"
-	}
-	log.Infof("配到PHP 运行版本为 %s \n", phpver)
 
 	serviceHost := DEMO_SERVICE_HOST
 	if asLocalService {

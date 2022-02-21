@@ -153,3 +153,23 @@ func TestFindPublicDir(t *testing.T) {
 
 	t.Log(publicDir)
 }
+
+func TestDetectPHPVersion(t *testing.T) {
+	dir := "F:\\Projects\\laneige\\e-Consultation\\code"
+
+	baseDir, err := FindPublicDir(dir)
+	if err != nil {
+		t.Error(err)
+		t.Fail()
+		return
+	}
+
+	phpVersion, err := DetectPHPVersion(baseDir)
+	if err != nil {
+		t.Error(err)
+		t.Fail()
+		return
+	}
+
+	t.Log(phpVersion)
+}

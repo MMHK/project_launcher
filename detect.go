@@ -300,14 +300,10 @@ func MatchWordPressPHPVersion(wpVersion string) (string, error) {
 			return "", err
 		}
 
-		log.Debug(constraint)
-
 		if constraint.Check(ver) {
 			return targetConstraint.PHPVersion, nil
 		}
 	}
-
-	log.Debug(baseVersion)
 
 	return baseVersion, nil
 }
@@ -339,4 +335,42 @@ tryMatch:
 	}
 
 	return publicDir, nil
+}
+
+func DetectPHPVersion(dir string) (string, error) {
+	composerConfigPath := filepath.Join(dir, "../composer.json")
+	if IsWordPressProject(dir) {
+		composerConfigPath = filepath.Join(dir, "composer.json")
+		wpVersion, err := GetPHPDependFromWPDir(dir)
+		if err != nil {
+			log.Error(err)
+			return "", err
+		}
+		phpVersion, err := MatchWordPressPHPVersion(wpVersion)
+		if err != nil {
+			log.Error(err)
+			return "", err
+		}
+
+		return phpVersion, nil
+	}
+	if _, err := os.Stat(composerConfigPath); os.IsNotExist(err) {
+		log.Error("未发现 composer.json")
+		return "", err
+	}
+	conf, err := LoadComposerJSON(composerConfigPath)
+	if err != nil {
+		log.Error(err)
+		return "", err
+	}
+	phpver, err := conf.MatchVersion("7.0", "7.2.99", "8")
+	if err != nil {
+		log.Error(err)
+		return "", err
+	}
+	if strings.EqualFold(phpver, "7.2.99") {
+		phpver = "7.2"
+	}
+	log.Infof("配到PHP 运行版本为 %s \n", phpver)
+	return phpver, nil
 }
