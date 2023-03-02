@@ -363,7 +363,7 @@ func DetectPHPVersion(dir string) (string, error) {
 		log.Error(err)
 		return "", err
 	}
-	phpver, err := conf.MatchVersion("7.0", "7.2.99", "8")
+	phpver, err := conf.MatchVersion("7.0", "7.2.99", "8.0.999", "8.1.999", "8.2.999")
 	if err != nil {
 		log.Error(err)
 		return "", err
@@ -371,6 +371,16 @@ func DetectPHPVersion(dir string) (string, error) {
 	if strings.EqualFold(phpver, "7.2.99") {
 		phpver = "7.2"
 	}
+	if strings.EqualFold(phpver, "8.0.999") {
+		phpver = "8.0"
+	}
+	if strings.EqualFold(phpver, "8.1.999") {
+		phpver = "8.1"
+	}
+	if strings.EqualFold(phpver, "8.2.999") {
+		phpver = "8.2"
+	}
+
 	log.Infof("配到PHP 运行版本为 %s \n", phpver)
 	return phpver, nil
 }

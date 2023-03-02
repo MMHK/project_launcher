@@ -155,7 +155,7 @@ func TestFindPublicDir(t *testing.T) {
 }
 
 func TestDetectPHPVersion(t *testing.T) {
-	dir := "F:\\Projects\\laneige\\e-Consultation\\code"
+	dir := "F:\\Projects\\GetUDID\\code\\php"
 
 	baseDir, err := FindPublicDir(dir)
 	if err != nil {
