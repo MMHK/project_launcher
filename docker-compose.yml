@@ -1,7 +1,7 @@
 version: "3.9"
 services:
   php:
-    image: "mmhk/php-docker:{{.ImageVersion}}-fpm"
+    image: "mixmediahk/php-docker:{{.ImageVersion}}-fpm"
     volumes:
       - .:/var/www/html
       - ../.:/var/www
@@ -11,7 +11,7 @@ services:
   nginx:
     depends_on:
       - php
-    image: "mmhk/php-docker:8-fpm-nginx"
+    image: "mixmediahk/php-docker:8-fpm-nginx"
     volumes:
       - .:/var/www/html
       - ../.:/var/www

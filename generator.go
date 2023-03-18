@@ -195,6 +195,11 @@ func BuildFrpsConfig() (string, error) {
 	FrpsIniPath := filepath.Join(savePath, `frps.ini`)
 	FrpsConfPath := filepath.Join(savePath, `frps-compose.yml`)
 
+	// remove the exist files
+	if _, err:= os.Stat(FrpsIniPath); err == nil {
+		os.RemoveAll(FrpsIniFile)
+	}
+
 	err := ioutil.WriteFile(FrpsIniPath, []byte(FrpsIniFile), 0777)
 	if err != nil {
 		return "", err
