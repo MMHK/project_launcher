@@ -1,22 +1,21 @@
-//go:build windows
-// +build windows
+//go:build darwin
+// +build darwin
 
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/KnicKnic/go-powershell/pkg/powershell"
 	"github.com/Masterminds/semver/v3"
-	"golang.org/x/sys/windows/registry"
+	"golang.org/x/sys/unix"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"strconv"
 	"strings"
 )
 
@@ -32,61 +31,41 @@ type OSInfo struct {
 }
 
 func GetOSInfo() (*OSInfo, error) {
-	k, err := registry.OpenKey(registry.LOCAL_MACHINE, `SOFTWARE\Microsoft\Windows NT\CurrentVersion`, registry.QUERY_VALUE)
-	if err != nil {
-		log.Error(err)
-		return nil, err
-	}
-	defer k.Close()
-
-	cv, _, err := k.GetStringValue("CurrentVersion")
-	if err != nil {
-		log.Error(err)
+	var uts unix.Utsname
+	if err := unix.Uname(&uts); err != nil {
 		return nil, err
 	}
 
-	pn, _, err := k.GetStringValue("ProductName")
-	if err != nil {
-		log.Error(err)
-		return nil, err
+	sysname := unix.ByteSliceToString(uts.Sysname[:])
+	release := unix.ByteSliceToString(uts.Release[:])
+	dotPos := strings.Index(release, ".")
+	if dotPos == -1 {
+		return nil, errors.New(fmt.Sprintf("nvalid release value: %s", release))
 	}
 
-	maj, _, err := k.GetIntegerValue("CurrentMajorVersionNumber")
+	major := release[:dotPos]
+	majorVersion, err := strconv.Atoi(major)
 	if err != nil {
-		log.Error(err)
 		return nil, err
 	}
-
-	min, _, err := k.GetIntegerValue("CurrentMinorVersionNumber")
-	if err != nil {
-		log.Error(err)
-		return nil, err
-	}
-
-	rv, _, err := k.GetStringValue("ReleaseId")
-	if err != nil {
-		log.Error(err)
-		return nil, err
-	}
-
-	cb, _, err := k.GetStringValue("CurrentBuild")
-	if err != nil {
-		log.Error(err)
-		return nil, err
-	}
+	strings.SplitN(release, ".", 2)
 
 	return &OSInfo{
-		CurrentVersion:            cv,
-		ProductName:               pn,
-		CurrentMajorVersionNumber: maj,
-		CurrentMinorVersionNumber: min,
-		BuildVersion:              cb,
-		ReleaseVersion:            rv,
+		CurrentVersion:            release,
+		ProductName:               sysname,
+		CurrentMajorVersionNumber: uint64(majorVersion),
+		CurrentMinorVersionNumber: uint64(majorVersion),
+		BuildVersion:              release,
+		ReleaseVersion:            release,
 	}, nil
 }
 
 func (this *OSInfo) IsWindows10() bool {
 	return strings.Contains(this.ProductName, `Windows 10`)
+}
+
+func (this *OSInfo) IsMacOS() bool {
+	return strings.Contains(this.ProductName, "Darwin")
 }
 
 func (this *OSInfo) MatchBuildVersion(Condition string) bool {
@@ -128,50 +107,24 @@ func IsScoopInstalled() (bool, string) {
 }
 
 func IsWinGetInstalled() (bool, string) {
-	output := ""
-	err := RunScript(func(runner powershell.Runspace) error {
-		cmd := `winget -v`
-		log.Debug(cmd)
-
-		res := runner.ExecScript(cmd, true, nil)
-		defer res.Close()
-		if res.Success() {
-			for _, ele := range res.Objects {
-				output += ele.ToString()
-			}
-			return nil
-		}
-
-		return errors.New(res.Exception.ToString())
-	})
-
-	if err != nil {
-		log.Error(err)
-		return false, ""
-	}
-
-	output = strings.TrimSpace(output)
-	if len(output) <= 0 {
-		return false, ""
-	}
-
-	return true, output
+	return false, ""
 }
 
 func IsDockerInstalled() error {
-	err, _ := DetectService(`com.docker.service`)
+	_, err := os.Stat("/Applications/Docker.app")
 	if err != nil {
 		log.Error(err)
 		return NewLauncherError(ERROR_DOCKER_DESKTOP_NOT_INSTALLED,
 			"请先安装 Docker Desktop, https://doc.weixin.qq.com/doc/w2_AGUAAwb2AKY9YO5hUlhSjODSUvwi6?scode=AEwAtAeZAAkacJBfyk")
 	}
-
-	cmd := exec.Command("docker", "info")
-	err = cmd.Run()
-
+	output, err := exec.Command("docker", "info").Output()
 	if err != nil {
 		log.Error(err)
+		return NewLauncherError(ERROR_DOCKER_DESKTOP_NOT_RUNNING,
+			"DockerDesktop 还未运行")
+	}
 
+	if !strings.Contains(string(output), "Server Version:") {
 		return NewLauncherError(ERROR_DOCKER_DESKTOP_NOT_RUNNING,
 			"DockerDesktop 还未运行")
 	}
@@ -180,13 +133,7 @@ func IsDockerInstalled() error {
 }
 
 func IsWindowTerminalInstalled() error {
-	cmd := exec.Command("wt", "-v")
-	err := cmd.Run()
-	if err != nil {
-		return NewLauncherError(ERROR_WINDOW_TERMINAL_NOT_INSTALLED,
-			"Window Terminal 还未安装，https://www.microsoft.com/zh-cn/p/windows-terminal/9n0dx20hk701?activetab=pivot:overviewtab")
-	}
-	return err
+	return errors.New("OS not support")
 }
 
 const WINSERVICE_STATUS_STARTED = 4
@@ -217,29 +164,7 @@ func IsMacOS() bool {
 }
 
 func DetectService(name string) (error, *WinService) {
-	commandLine := fmt.Sprintf(`Get-Service "%s" | ConvertTo-Json -Compress`, name)
-	cmd := exec.Command("powershell",
-		"-NoProfile", "-NonInteractive", "-Command", commandLine)
-	//log.Debugf(`%s`, cmd)
-	var stdout bytes.Buffer
-	cmd.Stdout = &stdout
-	err := cmd.Start()
-	if err != nil {
-		return err, nil
-	}
-	err = cmd.Wait()
-	if err != nil {
-		return err, nil
-	}
-
-	out := stdout.String()
-
-	service := parseService(out)
-	if len(service.Name) > 0 && strings.EqualFold(service.Name, name) {
-		return nil, service
-	}
-
-	return errors.New("Service not found"), nil
+	return errors.New("OS not support"), nil
 }
 
 func LoadExistFrpcConfig(dir string) (string, error) {

@@ -1,17 +1,18 @@
-//go:build windows
-// +build windows
+//go:build darwin
+// +build darwin
 
 package main
 
 import (
 	"errors"
 	"fmt"
-	"github.com/KnicKnic/go-powershell/pkg/powershell"
 	"github.com/goodhosts/hostsfile"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"strings"
 )
 
 type PowerShellLogger struct {
@@ -50,121 +51,51 @@ func ParseAppItem(raw string) *SearchAppItem {
 }
 
 func InstallAppPackage(AppID string) error {
-	return RunScript(func(runner powershell.Runspace) error {
-		cmd := fmt.Sprintf(`winget install --id %s`, AppID)
-		log.Debug(cmd)
-
-		res := runner.ExecScript(cmd, true, nil)
-		defer res.Close()
-		if res.Success() {
-			return nil
-		}
-
-		return errors.New(res.Exception.ToString())
-	})
+	return errors.New("OS not support")
 }
 
 func SearchAppPackage(appName string) (error, []*SearchAppItem) {
-	resultList := make([]*SearchAppItem, 0)
-	err := RunScript(func(runner powershell.Runspace) error {
-		cmd := fmt.Sprintf(`winget search -q %s`, appName)
-		log.Debug(cmd)
-
-		res := runner.ExecScript(cmd, true, nil)
-		defer res.Close()
-		if res.Success() {
-			for _, ele := range res.Objects {
-				app := ParseAppItem(ele.ToString())
-				if len(app.ID) > 0 {
-					resultList = append(resultList, app)
-				}
-			}
-			return nil
-		}
-
-		return errors.New(res.Exception.ToString())
-	})
-
-	return err, resultList
-}
-
-func RunScript(callback func(powershell.Runspace) error) error {
-	runSpace := powershell.CreateRunspace(new(PowerShellLogger), nil)
-	defer runSpace.Close()
-
-	return callback(runSpace)
+	return errors.New("OS not support"), nil
 }
 
 func ReloadPathEnv() error {
-	commandLine := `$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")`
-	cmd := exec.Command("powershell", "-Command", commandLine)
-
-	return cmd.Run()
+	oldPath := os.Getenv("PATH")
+	newPath := "/usr/local/bin:" + oldPath
+	os.Setenv("PATH", newPath)
+	return nil
 }
 
 func EnableWSL() error {
-	return RunScript(func(runner powershell.Runspace) error {
-		cmd := `dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart`
-		log.Debug(cmd)
-
-		res := runner.ExecScript(cmd, true, nil)
-		defer res.Close()
-		if res.Success() {
-			return nil
-		}
-
-		return errors.New(res.Exception.ToString())
-	})
+	return errors.New("OS not support")
 }
 
 func EnableHyperV() error {
-	return RunScript(func(runner powershell.Runspace) error {
-		cmd := `dism.exe /online /enable-feature /featurename:Microsoft-Hyper-V /all /norestart`
-		log.Debug(cmd)
-
-		res := runner.ExecScript(cmd, true, nil)
-		defer res.Close()
-		if res.Success() {
-			return nil
-		}
-
-		return errors.New(res.Exception.ToString())
-	})
+	return errors.New("OS not support")
 }
 
 func EnableVM() error {
-	return RunScript(func(runner powershell.Runspace) error {
-		cmd := `dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart`
-		log.Debug(cmd)
-
-		res := runner.ExecScript(cmd, true, nil)
-		defer res.Close()
-		if res.Success() {
-			return nil
-		}
-
-		return errors.New(res.Exception.ToString())
-	})
+	return errors.New("OS not support")
 }
 
 func StartContainer(dir string, containerName string) error {
-	wtCmd := ""
-	if err := IsWindowTerminalInstalled(); err == nil {
-		wtCmd = "wt"
-	}
-	cmd := exec.Command("cmd", "/C", "start", wtCmd, "docker-compose",
+	scriptWrap := `'tell app "Terminal" to do script "%s"'`
+	dockerScript := []string{"docker-compose",
 		"--project-directory", filepath.FromSlash(dir),
 		"--file", fmt.Sprintf(`%s/docker-compose.yml`, dir),
 		"--project-name", containerName,
-		"up", "--detach", "--force-recreate")
-	//log.Debugf("%s\n", cmd)
+		"up", "--detach", "--force-recreate"}
+	scriptWrap = fmt.Sprintf(scriptWrap, strings.Join(dockerScript, " "))
+	cmd := exec.Command("osascript", "-e", scriptWrap)
+
 	if err := cmd.Start(); err != nil {
 		log.Error(err)
+		log.Error(cmd.Output())
 		return err
 	}
 	err := cmd.Wait()
 	if err != nil {
 		log.Error(err)
+		log.Error(cmd.Output())
 		return err
 	}
 
@@ -251,15 +182,8 @@ func OpenBrowser(url string) {
 }
 
 func StartDockerDesktop() error {
-	binPath, err := exec.LookPath(`docker.exe`)
-	if err != nil {
-		return err
-	}
-
-	execPath := filepath.Join(filepath.Dir(binPath), "../../Docker Desktop.exe")
-
-	cmd := exec.Command(execPath)
-	err = cmd.Start()
+	cmd := exec.Command("open", "-a", "Docker")
+	err := cmd.Run()
 	if err != nil {
 		return err
 	}

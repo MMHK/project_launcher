@@ -67,8 +67,8 @@ func TestReloadPathEnv(t *testing.T) {
 }
 
 func TestStartContainer(t *testing.T) {
-	path := "D:/projects/wechat-coupon/code/php/public"
-	err := StartContainer(path, "sam-wechat")
+	path := "/Users/mixmedia/Desktop/Projects/mm-chat/motors-chat/public"
+	err := StartContainer(path, "motors-chat")
 	if err != nil {
 		t.Error(err)
 		t.Fail()

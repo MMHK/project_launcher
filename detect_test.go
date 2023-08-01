@@ -98,9 +98,9 @@ func TestIsWindowTerminalInstalled(t *testing.T) {
 }
 
 func TestIsWordPressProject(t *testing.T) {
-	dir := "D:\\projects\\sjcaa\\wp"
+	dir := "/Users/mixmedia/Downloads/wordpress"
 	flag := IsWordPressProject(dir)
-	if flag  {
+	if flag {
 		return
 	}
 
@@ -110,7 +110,7 @@ func TestIsWordPressProject(t *testing.T) {
 }
 
 func TestGetPHPDependFromWPDir(t *testing.T) {
-	dir := "D:\\projects\\sjcaa\\wp"
+	dir := "/Users/mixmedia/Downloads/wordpress"
 	version, err := GetPHPDependFromWPDir(dir)
 	if err != nil {
 		t.Error(err)
@@ -122,7 +122,7 @@ func TestGetPHPDependFromWPDir(t *testing.T) {
 }
 
 func TestMatchWordPressPHPVersion(t *testing.T) {
-	dir := "D:\\projects\\sjcaa\\wp"
+	dir := "/Users/mixmedia/Downloads/wordpress"
 	wpVersion, err := GetPHPDependFromWPDir(dir)
 	if err != nil {
 		t.Error(err)
@@ -143,7 +143,7 @@ func TestMatchWordPressPHPVersion(t *testing.T) {
 }
 
 func TestFindPublicDir(t *testing.T) {
-	dir := "D:\\projects\\wechat-coupon\\code\\php\\public\\static\\images"
+	dir := "/Users/mixmedia/Desktop/Projects/mm-chat/motors-chat/public/static/bootstrap/css"
 	publicDir, err := FindPublicDir(dir)
 	if err != nil {
 		t.Error(err)
@@ -155,7 +155,7 @@ func TestFindPublicDir(t *testing.T) {
 }
 
 func TestDetectPHPVersion(t *testing.T) {
-	dir := "F:\\Projects\\GetUDID\\code\\php"
+	dir := "/Users/mixmedia/Desktop/Projects/mm-chat/motors-chat/public/static/bootstrap/css"
 
 	baseDir, err := FindPublicDir(dir)
 	if err != nil {
