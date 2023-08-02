@@ -78,22 +78,22 @@ func EnableVM() error {
 }
 
 func StartContainer(dir string, containerName string) error {
-	scriptWrap := `'tell app "Terminal" to do script "%s"'`
+	frontEndScript := `activate application "Terminal"`
+	scriptWrap := `tell application "Terminal" to do script "%s" `
 	dockerScript := []string{"docker-compose",
 		"--project-directory", filepath.FromSlash(dir),
 		"--file", fmt.Sprintf(`%s/docker-compose.yml`, dir),
 		"--project-name", containerName,
 		"up", "--detach", "--force-recreate"}
 	scriptWrap = fmt.Sprintf(scriptWrap, strings.Join(dockerScript, " "))
-	cmd := exec.Command("osascript", "-e", scriptWrap)
+	cmd := exec.Command("osascript", "-s", "h", "-e", frontEndScript, "-e", scriptWrap)
 
 	if err := cmd.Start(); err != nil {
 		log.Error(err)
-		log.Error(cmd.Output())
+		log.Error(os.Stderr)
 		return err
 	}
-	err := cmd.Wait()
-	if err != nil {
+	if err := cmd.Wait(); err != nil {
 		log.Error(err)
 		log.Error(cmd.Output())
 		return err
@@ -103,23 +103,24 @@ func StartContainer(dir string, containerName string) error {
 }
 
 func StopContainer(dir string, containerName string) error {
-	wtCmd := ""
-	if err := IsWindowTerminalInstalled(); err == nil {
-		wtCmd = "wt"
-	}
-	cmd := exec.Command("cmd", "/C", "start", wtCmd, "docker-compose",
+	frontEndScript := `activate application "Terminal"`
+	scriptWrap := `tell application "Terminal" to do script "%s" `
+	dockerScript := []string{"docker-compose",
 		"--project-directory", filepath.FromSlash(dir),
 		"--file", fmt.Sprintf(`%s/docker-compose.yml`, dir),
 		"--project-name", containerName,
-		"down")
-	//log.Debugf("%s\n", cmd)
+		"down"}
+	scriptWrap = fmt.Sprintf(scriptWrap, strings.Join(dockerScript, " "))
+	cmd := exec.Command("osascript", "-s", "h", "-e", frontEndScript, "-e", scriptWrap)
+
 	if err := cmd.Start(); err != nil {
 		log.Error(err)
+		log.Error(os.Stderr)
 		return err
 	}
-	err := cmd.Wait()
-	if err != nil {
+	if err := cmd.Wait(); err != nil {
 		log.Error(err)
+		log.Error(cmd.Output())
 		return err
 	}
 
@@ -127,13 +128,12 @@ func StopContainer(dir string, containerName string) error {
 }
 
 func RunPHPConsole(containerName string) error {
-	wtCmd := ""
-	if err := IsWindowTerminalInstalled(); err == nil {
-		wtCmd = "wt"
-	}
-
-	cmd := exec.Command("cmd", "/C", "start", wtCmd,
-		"docker", "exec", "--workdir=/var/www", "-it", fmt.Sprintf(`%s_php_1`, containerName), "/bin/sh")
+	frontEndScript := `activate application "Terminal"`
+	scriptWrap := `tell application "Terminal" to do script "%s" `
+	dockerScript := []string{"docker", "exec", "--workdir=/var/www",
+		"-it", fmt.Sprintf(`%s-php-1`, containerName), "/bin/sh"}
+	scriptWrap = fmt.Sprintf(scriptWrap, strings.Join(dockerScript, " "))
+	cmd := exec.Command("osascript", "-s", "h", "-e", frontEndScript, "-e", scriptWrap)
 
 	//log.Debugf("%s\n", cmd)
 	if err := cmd.Start(); err != nil {
@@ -141,21 +141,33 @@ func RunPHPConsole(containerName string) error {
 		return err
 	}
 
+	if err := cmd.Wait(); err != nil {
+		log.Error(err)
+		log.Error(cmd.Output())
+		return err
+	}
+
 	return nil
 }
 
 func PHPComposerInit(dir string) error {
-	wtCmd := ""
-	if err := IsWindowTerminalInstalled(); err == nil {
-		wtCmd = "wt"
-	}
+	frontEndScript := `activate application "Terminal"`
+	scriptWrap := `tell application "Terminal" to do script "%s" `
+	dockerComposerYMLPath := filepath.FromSlash(filepath.Join(dir, "docker-compose.yml"))
+	dockerScript := []string{"docker-compose", "--file", dockerComposerYMLPath, "run", "--no-deps", "--rm",
+		"--workdir=/var/www", "php", "composer", "update"}
+	scriptWrap = fmt.Sprintf(scriptWrap, strings.Join(dockerScript, " "))
+	cmd := exec.Command("osascript", "-s", "h", "-e", frontEndScript, "-e", scriptWrap)
 
-	cmd := exec.Command("cmd", "/C", "start", "/wait", "/D", filepath.FromSlash(dir), wtCmd,
-		"docker-compose", "run", "--no-deps", "--rm", "--workdir=/var/www", "php", "composer", "update")
-
-	log.Debugf("%s\n", cmd)
+	//log.Debugf("%s\n", cmd)
 	if err := cmd.Start(); err != nil {
 		log.Error(err)
+		return err
+	}
+
+	if err := cmd.Wait(); err != nil {
+		log.Error(err)
+		log.Error(cmd.Output())
 		return err
 	}
 
@@ -182,7 +194,9 @@ func OpenBrowser(url string) {
 }
 
 func StartDockerDesktop() error {
-	cmd := exec.Command("open", "-a", "Docker")
+	scriptWrap := `tell application "Docker" to activate`
+	cmd := exec.Command("osascript", "-s", "h", "-e", scriptWrap)
+
 	err := cmd.Run()
 	if err != nil {
 		return err
@@ -197,17 +211,24 @@ func StartLocalMySQLServer() error {
 		return err
 	}
 
-	wtCmd := ""
-	if err := IsWindowTerminalInstalled(); err == nil {
-		wtCmd = "wt"
-	}
+	frontEndScript := `activate application "Terminal"`
+	scriptWrap := `tell application "Terminal" to do script "%s" `
+	dockerScript := []string{"docker-compose",
+		"--file", filepath.FromSlash(mysqlCfgPath),
+		"--project-name",
+		"mysql", "up", "-d"}
+	scriptWrap = fmt.Sprintf(scriptWrap, strings.Join(dockerScript, " "))
+	cmd := exec.Command("osascript", "-s", "h", "-e", frontEndScript, "-e", scriptWrap)
 
-	cmd := exec.Command("cmd", "/C", "start", wtCmd,
-		"docker-compose", "--file", filepath.FromSlash(mysqlCfgPath), "--project-name", "mysql", "up", "-d")
-
-	log.Debugf("%s\n", cmd)
+	//log.Debugf("%s\n", cmd)
 	if err := cmd.Start(); err != nil {
 		log.Error(err)
+		return err
+	}
+
+	if err := cmd.Wait(); err != nil {
+		log.Error(err)
+		log.Error(cmd.Output())
 		return err
 	}
 
@@ -220,17 +241,23 @@ func StartLocalFRPS() error {
 		return err
 	}
 
-	wtCmd := ""
-	if err := IsWindowTerminalInstalled(); err == nil {
-		wtCmd = "wt"
-	}
+	frontEndScript := `activate application "Terminal"`
+	scriptWrap := `tell application "Terminal" to do script "%s" `
+	dockerScript := []string{"docker-compose",
+		"--file", filepath.FromSlash(frpsConfPath),
+		"--project-name", "frps", "up", "-d"}
+	scriptWrap = fmt.Sprintf(scriptWrap, strings.Join(dockerScript, " "))
+	cmd := exec.Command("osascript", "-s", "h", "-e", frontEndScript, "-e", scriptWrap)
 
-	cmd := exec.Command("cmd", "/C", "start", wtCmd,
-		"docker-compose", "--file", filepath.FromSlash(frpsConfPath), "--project-name", "frps", "up", "-d")
-
-	log.Debugf("%s\n", cmd)
+	//log.Debugf("%s\n", cmd)
 	if err := cmd.Start(); err != nil {
 		log.Error(err)
+		return err
+	}
+
+	if err := cmd.Wait(); err != nil {
+		log.Error(err)
+		log.Error(cmd.Output())
 		return err
 	}
 
@@ -261,17 +288,23 @@ func StartRedisService() error {
 		return err
 	}
 
-	wtCmd := ""
-	if err := IsWindowTerminalInstalled(); err == nil {
-		wtCmd = "wt"
-	}
+	frontEndScript := `activate application "Terminal"`
+	scriptWrap := `tell application "Terminal" to do script "%s" `
+	dockerScript := []string{"docker-compose",
+		"--file", filepath.FromSlash(redisConfPath),
+		"--project-name", "redis", "up", "-d"}
+	scriptWrap = fmt.Sprintf(scriptWrap, strings.Join(dockerScript, " "))
+	cmd := exec.Command("osascript", "-s", "h", "-e", frontEndScript, "-e", scriptWrap)
 
-	cmd := exec.Command("cmd", "/C", "start", wtCmd,
-		"docker-compose", "--file", filepath.FromSlash(redisConfPath), "--project-name", "redis", "up", "-d")
-
-	log.Debugf("%s\n", cmd)
+	//log.Debugf("%s\n", cmd)
 	if err := cmd.Start(); err != nil {
 		log.Error(err)
+		return err
+	}
+
+	if err := cmd.Wait(); err != nil {
+		log.Error(err)
+		log.Error(cmd.Output())
 		return err
 	}
 

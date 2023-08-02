@@ -1,6 +1,9 @@
 package main
 
-import "testing"
+import (
+	"net"
+	"testing"
+)
 
 func TestGetOSInfo(t *testing.T) {
 	info, err := GetOSInfo()
@@ -172,4 +175,17 @@ func TestDetectPHPVersion(t *testing.T) {
 	}
 
 	t.Log(phpVersion)
+}
+
+func TestLocalIPRange(t *testing.T) {
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		t.Error(err)
+	}
+	for _, addr := range addrs {
+		ipNet, ok := addr.(*net.IPNet)
+		if ok && !ipNet.IP.IsLoopback() && ipNet.IP.To4() != nil {
+			t.Log(ipNet.IP)
+		}
+	}
 }

@@ -89,6 +89,10 @@ func (this *OSInfo) IsWindows10() bool {
 	return strings.Contains(this.ProductName, `Windows 10`)
 }
 
+func (this *OSInfo) IsMacOS() bool {
+	return strings.Contains(this.ProductName, "Darwin")
+}
+
 func (this *OSInfo) MatchBuildVersion(Condition string) bool {
 	constraint, err := semver.NewConstraint(Condition)
 	if err != nil {

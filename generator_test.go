@@ -20,7 +20,7 @@ func TestBootStrapConfig_BuildConfig(t *testing.T) {
 }
 
 func TestLoadFrpcConfig(t *testing.T) {
-	path := "F:\\Projects\\speedyagency\\code\\public\\frpc.ini"
+	path := "/Users/mixmedia/Desktop/Projects/mm-chat/motors-chat/public/frpc.ini"
 	config, err := LoadFrpcConfig(path)
 	if err != nil {
 		t.Error(err)
@@ -49,7 +49,6 @@ func TestBuildFrpsConfig(t *testing.T) {
 		t.Fail()
 		return
 	}
-
 
 	t.Logf(`frps compose config file path: %s`, confPath)
 }

@@ -21,7 +21,7 @@ func Test_SubDomainExist(t *testing.T) {
 }
 
 func TestFrpApi_GetServiceInfo(t *testing.T) {
-	api := NewFrpApi(`http://127.0.0.1:4000/api`, "admin", "admin")
+	api := NewFrpApi(`http://127.0.0.1:7001/api`, "admin", "admin")
 	resp, err := api.GetServiceInfo()
 	if err != nil {
 		t.Error(err)

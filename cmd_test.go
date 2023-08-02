@@ -86,7 +86,7 @@ func TestStartDockerDesktop(t *testing.T) {
 }
 
 func TestRunPHPConsole(t *testing.T) {
-	err := RunPHPConsole("speedyagency")
+	err := RunPHPConsole("motors-chat")
 	if err != nil {
 		t.Error(err)
 		t.Fail()
@@ -95,7 +95,7 @@ func TestRunPHPConsole(t *testing.T) {
 }
 
 func TestPHPComposerInit(t *testing.T) {
-	path := "F:/Projects/speedyagency/code/public"
+	path := "/Users/mixmedia/Desktop/Projects/mm-chat/motors-chat/public"
 	err := PHPComposerInit(path)
 	if err != nil {
 		t.Error(err)
@@ -105,8 +105,8 @@ func TestPHPComposerInit(t *testing.T) {
 }
 
 func TestStopContainer(t *testing.T) {
-	path := "F:/Projects/speedyagency/insurance/public"
-	err := StopContainer(path, "sam-sa-ins")
+	path := "/Users/mixmedia/Desktop/Projects/mm-chat/motors-chat/public"
+	err := StopContainer(path, "motors-chat")
 	if err != nil {
 		t.Error(err)
 		t.Fail()

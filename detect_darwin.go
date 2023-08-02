@@ -14,7 +14,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
-	"runtime"
 	"strconv"
 	"strings"
 )
@@ -154,13 +153,6 @@ func parseService(raw string) *WinService {
 		log.Error(err)
 	}
 	return item
-}
-
-func IsMacOS() bool {
-	if runtime.GOOS == "darwin" {
-		return true
-	}
-	return false
 }
 
 func DetectService(name string) (error, *WinService) {

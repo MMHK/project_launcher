@@ -4,14 +4,18 @@ import (
 	"errors"
 	"fmt"
 	"github.com/manifoldco/promptui"
+	"net"
 	"os"
 	"path/filepath"
 )
 
 const DEMO_SERVICE_HOST = `192.168.33.6`
-const LOCAL_SERVICE_HOST = `host.docker.internal`
 const FRPS_API = `http://192.168.33.6:7001/api`
-const FRPS_LOCAL_API = `http://host.docker.internal:7001/api`
+
+var (
+	LOCAL_SERVICE_HOST = `host.docker.internal`
+	FRPS_LOCAL_API     = `http://host.docker.internal:7001/api`
+)
 
 func prepareRuntime() error {
 	info, err := GetOSInfo()
@@ -19,11 +23,11 @@ func prepareRuntime() error {
 		log.Error(err)
 		return err
 	}
-	if !info.IsWindows10() {
-		log.Error("支持windows 10，其他系统请自己解决")
-		return err
-	}
-	if !info.MatchBuildVersion(DOCKER_DEPS_VERSION) {
+
+	// 处理 host.docker.internal 域名不可用的情况
+	patchLocalHost(info)
+
+	if info.IsWindows10() && info.MatchBuildVersion(DOCKER_DEPS_VERSION) {
 		log.Error("支持windows 10 版本过低，装不了Docker，请自己解决")
 		return err
 	}
@@ -276,6 +280,24 @@ func SelectMethods() {
 	case 6:
 		StartLocalRedisServer()
 		return
+	}
+}
+
+func patchLocalHost(info *OSInfo) {
+	if info.IsMacOS() {
+		addrs, err := net.InterfaceAddrs()
+		if err != nil {
+			log.Error(err)
+		}
+		for _, addr := range addrs {
+			ipNet, ok := addr.(*net.IPNet)
+			if ok && !ipNet.IP.IsLoopback() && ipNet.IP.To4() != nil {
+				ipString := ipNet.IP.String()
+				LOCAL_SERVICE_HOST = ipString
+				FRPS_LOCAL_API = fmt.Sprintf(`http://%s:7001/api`, ipString)
+				break
+			}
+		}
 	}
 }
 
