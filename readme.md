@@ -1,6 +1,6 @@
 # MM Project Launcher
 
-基于 `docker` 容器的 windows 10 开发环境
+基于 `docker` 容器的 windows 10 / MacOS 开发环境
 
 
 ### How to use
@@ -23,4 +23,5 @@
 
 - 需要 Golang >= 1.16 (使用最新的 `embed` 特性)
 - 需要安装 [rsrc](https://github.com/akavel/rsrc) 用于引入 windows10 的管理员权限
-- 执行 根目录下的 编译脚本 `build.cmd`
+- 执行 根目录下的 编译脚本 `build.cmd` （windows10 版本）
+- 执行 根目录下的 编译脚本 `build-darwin.sh` （MacOS 版本）
