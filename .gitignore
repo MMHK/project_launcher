@@ -5,3 +5,7 @@
 /projectLauncher.syso
 /*.zip
 /projectLauncher-darwin
+.DS_Store
+bin/ProjectLauncher.app
+bin/darwin/projectLauncher-darwin
+*.go

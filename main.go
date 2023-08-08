@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"flag"
 	"fmt"
 	"github.com/manifoldco/promptui"
 	"net"
@@ -15,6 +16,7 @@ const FRPS_API = `http://192.168.33.6:7001/api`
 var (
 	LOCAL_SERVICE_HOST = `host.docker.internal`
 	FRPS_LOCAL_API     = `http://host.docker.internal:7001/api`
+	PROJECT_ROOT 	   = ``
 )
 
 func prepareRuntime() error {
@@ -87,7 +89,7 @@ func StartPHPWebProject(asLocalService bool) error {
 		}
 	}
 
-	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	dir, err := filepath.Abs(PROJECT_ROOT)
 	if err != nil {
 		log.Error(err)
 		return err
@@ -174,7 +176,7 @@ inputProjectName:
 }
 
 func PHPConsole() error {
-	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	dir, err := filepath.Abs(filepath.Dir(PROJECT_ROOT))
 	if err != nil {
 		log.Error(err)
 		return err
@@ -190,7 +192,7 @@ func PHPConsole() error {
 }
 
 func ComposerInit() error {
-	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	dir, err := filepath.Abs(filepath.Dir(PROJECT_ROOT))
 	if err != nil {
 		log.Error(err)
 		return err
@@ -200,7 +202,7 @@ func ComposerInit() error {
 }
 
 func StopPHPWebProject() error {
-	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	dir, err := filepath.Abs(filepath.Dir(PROJECT_ROOT))
 	if err != nil {
 		log.Error(err)
 		return err
@@ -311,6 +313,9 @@ func main() {
 		os.Exit(1)
 		return
 	}
+	startPath := flag.String("p", filepath.Dir(os.Args[0]), "project root path")
+	flag.Parse()
+	PROJECT_ROOT = *startPath
 
 start:
 

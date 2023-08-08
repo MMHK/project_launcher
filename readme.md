@@ -25,3 +25,7 @@
 - 需要安装 [rsrc](https://github.com/akavel/rsrc) 用于引入 windows10 的管理员权限
 - 执行 根目录下的 编译脚本 `build.cmd` （windows10 版本）
 - 执行 根目录下的 编译脚本 `build-darwin.sh` （MacOS 版本）
+
+#### macOS 编译说明
+
+- 请使用[platypus](https://sveinbjorn.org/platypus) 工具打包成 bundle app，启动脚本在 `bin/darwin/start.sh`
