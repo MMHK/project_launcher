@@ -16,7 +16,7 @@ const FRPS_API = `http://192.168.33.6:7001/api`
 var (
 	LOCAL_SERVICE_HOST = `host.docker.internal`
 	FRPS_LOCAL_API     = `http://host.docker.internal:7001/api`
-	PROJECT_ROOT 	   = ``
+	PROJECT_ROOT       = ``
 )
 
 func prepareRuntime() error {
@@ -176,7 +176,7 @@ inputProjectName:
 }
 
 func PHPConsole() error {
-	dir, err := filepath.Abs(filepath.Dir(PROJECT_ROOT))
+	dir, err := filepath.Abs(PROJECT_ROOT)
 	if err != nil {
 		log.Error(err)
 		return err
@@ -192,7 +192,7 @@ func PHPConsole() error {
 }
 
 func ComposerInit() error {
-	dir, err := filepath.Abs(filepath.Dir(PROJECT_ROOT))
+	dir, err := filepath.Abs(PROJECT_ROOT)
 	if err != nil {
 		log.Error(err)
 		return err
@@ -202,7 +202,7 @@ func ComposerInit() error {
 }
 
 func StopPHPWebProject() error {
-	dir, err := filepath.Abs(filepath.Dir(PROJECT_ROOT))
+	dir, err := filepath.Abs(PROJECT_ROOT)
 	if err != nil {
 		log.Error(err)
 		return err
